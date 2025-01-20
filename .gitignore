@@ -1,0 +1,7 @@
+/bin/
+/dist/
+*.db
+*.db-journal
+coverage.out
+coverage.html
+.downguy-cache/
