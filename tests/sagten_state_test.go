@@ -67,31 +67,72 @@ func TestResultantLoadIsTheHypotenusePlusK(t *testing.T) {
 	}
 }
 
-func TestInitialCondition(t *testing.T) {
+func TestDesignConditionSitsAtTheLoadedLimit(t *testing.T) {
 	c := sparrow(t)
-	got, err := sagten.InitialCondition(c)
+	got, err := sagten.DesignCondition(c, nesc.Heavy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Tension != c.RatedStrength*0.33 {
+		t.Errorf("design tension = %v, want a third of rating", got.Tension)
+	}
+	if got.Temperature != unit.TempHeavyDistrict {
+		t.Errorf("design temperature = %v", got.Temperature)
+	}
+	if got.LoadPerFoot <= c.WeightPerFoot {
+		t.Errorf("the design load should carry ice and wind, got %v", got.LoadPerFoot)
+	}
+	if _, err := sagten.DesignCondition(c, nesc.District("tropical")); err == nil {
+		t.Error("an unknown district should be rejected")
+	}
+	bad := c
+	bad.AreaSquareInches = 0
+	if _, err := sagten.DesignCondition(bad, nesc.Heavy); err == nil {
+		t.Error("an invalid conductor should be rejected")
+	}
+}
+
+func TestInitialConditionIsWorkedBackFromTheDesignCase(t *testing.T) {
+	c := sparrow(t)
+	got, err := sagten.InitialCondition(c, 225, nesc.Heavy)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if got.Temperature != unit.TempStringing {
 		t.Errorf("stringing temperature = %v", got.Temperature)
 	}
-	if got.Tension != c.RatedStrength*0.25 {
-		t.Errorf("stringing tension = %v", got.Tension)
-	}
 	if got.LoadPerFoot != c.WeightPerFoot {
 		t.Errorf("stringing load = %v", got.LoadPerFoot)
 	}
-	bad := c
-	bad.AreaSquareInches = 0
-	if _, err := sagten.InitialCondition(bad); err == nil {
-		t.Error("an invalid conductor should be rejected")
+	if got.Tension >= c.MaxTension(true) {
+		t.Errorf("stringing tension %v should be under the loaded limit %v", got.Tension, c.MaxTension(true))
+	}
+	if got.Tension <= 0 {
+		t.Errorf("stringing tension = %v", got.Tension)
+	}
+	light, err := sagten.InitialCondition(c, 225, nesc.Light)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Both districts design to the same third of rating, but the heavy case
+	// reaches it under half an inch of ice at zero degrees. Backing that off
+	// to a bare wire on a mild day leaves far less tension than backing off
+	// the light case does, which is why a heavy district line is strung
+	// slacker than the same wire in a light one.
+	if light.Tension <= got.Tension {
+		t.Errorf("the light district should string tighter: light %v, heavy %v", light.Tension, got.Tension)
+	}
+	if _, err := sagten.InitialCondition(c, 0, nesc.Heavy); err == nil {
+		t.Error("a zero ruling span should be rejected")
+	}
+	if _, err := sagten.InitialCondition(c, 225, nesc.District("tropical")); err == nil {
+		t.Error("an unknown district should be rejected")
 	}
 }
 
 func TestTensionFallsAsItGetsHotter(t *testing.T) {
 	c := sparrow(t)
-	from, err := sagten.InitialCondition(c)
+	from, err := sagten.InitialCondition(c, 225, nesc.Heavy)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -115,9 +156,9 @@ func TestTensionFallsAsItGetsHotter(t *testing.T) {
 	}
 }
 
-func TestTensionRisesUnderIceAndWind(t *testing.T) {
+func TestTheDesignCaseIsTheHardestPull(t *testing.T) {
 	c := sparrow(t)
-	from, err := sagten.InitialCondition(c)
+	from, err := sagten.InitialCondition(c, 225, nesc.Heavy)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,6 +173,16 @@ func TestTensionRisesUnderIceAndWind(t *testing.T) {
 	if loaded <= from.Tension {
 		t.Errorf("the heavy case should pull harder than stringing: %v against %v", loaded, from.Tension)
 	}
+	if math.Abs(loaded-c.MaxTension(true)) > 1 {
+		t.Errorf("the heavy case should land back on the design limit, got %v against %v", loaded, c.MaxTension(true))
+	}
+	cold, err := sagten.SolveTension(c, 225, from, from.LoadPerFoot, unit.Temperature(0))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cold > c.MaxTension(false)*1.6 {
+		t.Errorf("a bare cold night should not run away from the everyday limit, got %v", cold)
+	}
 	if _, _, err := sagten.DistrictCondition(c, nesc.District("tropical")); err == nil {
 		t.Error("an unknown district should be rejected")
 	}
@@ -139,7 +190,7 @@ func TestTensionRisesUnderIceAndWind(t *testing.T) {
 
 func TestSolveTensionRejectsNonsense(t *testing.T) {
 	c := sparrow(t)
-	from, err := sagten.InitialCondition(c)
+	from, err := sagten.InitialCondition(c, 225, nesc.Heavy)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +214,7 @@ func TestSolveTensionRejectsNonsense(t *testing.T) {
 
 func TestSagAtSolvesThenSags(t *testing.T) {
 	c := sparrow(t)
-	from, err := sagten.InitialCondition(c)
+	from, err := sagten.InitialCondition(c, 225, nesc.Heavy)
 	if err != nil {
 		t.Fatal(err)
 	}

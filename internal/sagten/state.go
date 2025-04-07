@@ -115,21 +115,48 @@ func SagAt(c Conductor, rulingSpanFeet, spanFeet float64, from Condition, toLoad
 	return sag, tension, nil
 }
 
-// InitialCondition builds the starting state a conductor is strung at: the
-// bare load at the stringing temperature, held at the everyday tension limit.
-func InitialCondition(c Conductor) (Condition, error) {
+// DesignCondition builds the state a conductor is designed to: the district
+// loading case, held at the loaded tension limit. This is the condition the
+// stringing tension is worked back from, not the other way round. Stringing to
+// a quarter of rating on a mild day and then discovering the wire pulls past
+// its limit on the first cold night is the mistake this ordering exists to
+// stop.
+func DesignCondition(c Conductor, d nesc.District) (Condition, error) {
 	if err := c.Validate(); err != nil {
+		return Condition{}, err
+	}
+	load, temp, err := DistrictCondition(c, d)
+	if err != nil {
+		return Condition{}, err
+	}
+	return Condition{
+		LoadPerFoot: load,
+		Temperature: temp,
+		Tension:     c.MaxTension(true),
+	}, nil
+}
+
+// InitialCondition returns the state the conductor is strung in: bare load at
+// the stringing temperature, at whatever tension follows from having designed
+// it to the district case.
+func InitialCondition(c Conductor, rulingSpanFeet float64, d nesc.District) (Condition, error) {
+	design, err := DesignCondition(c, d)
+	if err != nil {
+		return Condition{}, err
+	}
+	tension, err := SolveTension(c, rulingSpanFeet, design, BareLoad(c), unit.TempStringing)
+	if err != nil {
 		return Condition{}, err
 	}
 	return Condition{
 		LoadPerFoot: BareLoad(c),
 		Temperature: unit.TempStringing,
-		Tension:     c.MaxTension(false),
+		Tension:     tension,
 	}, nil
 }
 
-// DistrictCondition builds the state a conductor is in under a district
-// loading case.
+// DistrictCondition returns the load per foot and the temperature of a
+// district loading case for a conductor.
 func DistrictCondition(c Conductor, d nesc.District) (float64, unit.Temperature, error) {
 	l, err := nesc.LoadingFor(d)
 	if err != nil {
