@@ -36,6 +36,12 @@ func BuildWires(a *plant.Assembly, line *plant.Line, assign Assignment, d nesc.D
 	}
 	windSpan := WindSpan(adjacent...)
 	ruling := line.RulingSpan()
+	longest := 0.0
+	for _, s := range spans {
+		if f := s.Length.Float(); f > longest {
+			longest = f
+		}
+	}
 
 	var out []Wire
 	for _, att := range a.Attachments {
@@ -55,19 +61,20 @@ func BuildWires(a *plant.Assembly, line *plant.Line, assign Assignment, d nesc.D
 			return nil, fmt.Errorf("%s: %w", att.ID, err)
 		}
 		out = append(out, Wire{
-			AttachmentID: att.ID,
-			Owner:        att.Owner,
-			Conductor:    c,
-			WindSpanFeet: windSpan,
-			Height:       att.Height,
-			Tension:      design.Tension,
+			AttachmentID:   att.ID,
+			Owner:          att.Owner,
+			Conductor:      c,
+			WindSpanFeet:   windSpan,
+			SpanFeet:       longest,
+			RulingSpanFeet: ruling,
+			Height:         att.Height,
+			Tension:        design.Tension,
 		})
 	}
 	if len(out) == 0 {
 		return nil, fmt.Errorf("%w: %s carries no span facilities", ErrBadLoad, a.Pole.ID)
 	}
 	sort.SliceStable(out, func(i, j int) bool { return out[i].Height > out[j].Height })
-	_ = ruling
 	return out, nil
 }
 
@@ -101,12 +108,14 @@ func WithAttachment(wires []Wire, att plant.Attachment, code string, d nesc.Dist
 	out := make([]Wire, len(wires), len(wires)+1)
 	copy(out, wires)
 	out = append(out, Wire{
-		AttachmentID: att.ID,
-		Owner:        att.Owner,
-		Conductor:    c,
-		WindSpanFeet: wires[0].WindSpanFeet,
-		Height:       att.Height,
-		Tension:      design.Tension,
+		AttachmentID:   att.ID,
+		Owner:          att.Owner,
+		Conductor:      c,
+		WindSpanFeet:   wires[0].WindSpanFeet,
+		SpanFeet:       wires[0].SpanFeet,
+		RulingSpanFeet: wires[0].RulingSpanFeet,
+		Height:         att.Height,
+		Tension:        design.Tension,
 	})
 	sort.SliceStable(out, func(i, j int) bool { return out[i].Height > out[j].Height })
 	return out, nil

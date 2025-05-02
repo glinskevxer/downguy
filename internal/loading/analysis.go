@@ -37,10 +37,53 @@ type Wire struct {
 	AttachmentID string
 	Owner        string
 	Conductor    sagten.Conductor
+	// WindSpanFeet is the length of wire whose wind this pole carries.
 	WindSpanFeet float64
-	Height       unit.Height
-	Tension      float64
-	AngleDegrees float64
+	// SpanFeet is the span the sag is worked out over, and RulingSpanFeet is
+	// the section's ruling span, which fixes the tension. They are different
+	// numbers and using one for the other is the classic way to get a sag that
+	// looks plausible and is wrong.
+	SpanFeet       float64
+	RulingSpanFeet float64
+	Height         unit.Height
+	Tension        float64
+	AngleDegrees   float64
+}
+
+// Sag returns the sag of the wire at a temperature under a load, in feet,
+// having solved the change of state from its design condition.
+func (w Wire) Sag(d nesc.District, loadPerFoot float64, temp unit.Temperature) (float64, error) {
+	if w.RulingSpanFeet <= 0 || w.SpanFeet <= 0 {
+		return 0, fmt.Errorf("%w: %s has no span to sag over", ErrBadLoad, w.AttachmentID)
+	}
+	start, err := sagten.InitialCondition(w.Conductor, w.RulingSpanFeet, d)
+	if err != nil {
+		return 0, err
+	}
+	sag, _, err := sagten.SagAt(w.Conductor, w.RulingSpanFeet, w.SpanFeet, start, loadPerFoot, temp)
+	return sag, err
+}
+
+// MaxSag returns the deepest sag the wire ever reaches: at its maximum
+// operating temperature under its own bare weight, or under the district
+// loading case, whichever hangs lower.
+func (w Wire) MaxSag(d nesc.District) (float64, error) {
+	hot, err := w.Sag(d, sagten.BareLoad(w.Conductor), unit.TempMaxOperating)
+	if err != nil {
+		return 0, err
+	}
+	load, temp, err := sagten.DistrictCondition(w.Conductor, d)
+	if err != nil {
+		return 0, err
+	}
+	iced, err := w.Sag(d, load, temp)
+	if err != nil {
+		return 0, err
+	}
+	if iced > hot {
+		return iced, nil
+	}
+	return hot, nil
 }
 
 // Component is one contribution to the groundline moment, kept separately so a

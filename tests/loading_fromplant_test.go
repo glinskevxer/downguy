@@ -213,3 +213,60 @@ func TestOwnersOfWires(t *testing.T) {
 		t.Errorf("no wires, no owners, got %v", got)
 	}
 }
+
+func TestWiresCarryBothSpanFigures(t *testing.T) {
+	line := sampleLine(t)
+	wires, err := loading.BuildWires(sampleAssembly(), line, sampleAssignment(), nesc.Heavy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, w := range wires {
+		if w.RulingSpanFeet != line.RulingSpan() {
+			t.Errorf("%s carries ruling span %v, want %v", w.AttachmentID, w.RulingSpanFeet, line.RulingSpan())
+		}
+		if w.SpanFeet != 200 {
+			t.Errorf("%s carries span %v, want the 200 foot span it lands on", w.AttachmentID, w.SpanFeet)
+		}
+	}
+	if wires[0].SpanFeet == wires[0].RulingSpanFeet {
+		t.Error("on this section the ruling span and the span differ, so a test that cannot tell them apart is not testing anything")
+	}
+}
+
+func TestWireSagRisesWithTemperature(t *testing.T) {
+	wires, err := loading.BuildWires(sampleAssembly(), sampleLine(t), sampleAssignment(), nesc.Heavy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := wires[0]
+	bare := w.Conductor.WeightPerFoot
+	cold, err := w.Sag(nesc.Heavy, bare, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	hot, err := w.Sag(nesc.Heavy, bare, unit.TempMaxOperating)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if hot <= cold {
+		t.Errorf("a hot wire sags more: hot %v, cold %v", hot, cold)
+	}
+	worst, err := w.MaxSag(nesc.Heavy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if worst < hot {
+		t.Errorf("the worst sag %v is under the hot sag %v", worst, hot)
+	}
+	bad := w
+	bad.RulingSpanFeet = 0
+	if _, err := bad.Sag(nesc.Heavy, bare, 0); err == nil {
+		t.Error("a wire with no ruling span cannot be sagged")
+	}
+	if _, err := bad.MaxSag(nesc.Heavy); err == nil {
+		t.Error("and it has no worst sag either")
+	}
+	if _, err := w.MaxSag(nesc.District("tropical")); err == nil {
+		t.Error("an unknown district should be rejected")
+	}
+}
