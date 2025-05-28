@@ -24,7 +24,7 @@ func sampleSheet() survey.PoleSheet {
 		Measurements: []survey.Measurement{
 			measure("A3", 200, survey.MethodStick),
 			measure("A1", 335, survey.MethodLaser),
-			measure("A4", 192, survey.MethodStick),
+			measure("A4", 186, survey.MethodStick),
 			measure("A2", 285, survey.MethodLaser),
 		},
 		Condition:  plant.ConditionSound,

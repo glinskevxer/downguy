@@ -24,7 +24,7 @@ func sampleAssembly() *plant.Assembly {
 	return plant.NewAssembly(samplePole(), []plant.Attachment{
 		att("A3", "RIDGEPORT CABLEVISION", plant.KindCommCable, 200),
 		att("A1", "SUMMIT VALLEY ELECTRIC", plant.KindPrimary, 335),
-		att("A4", "NORTHVALE TELEPHONE", plant.KindCommCable, 192),
+		att("A4", "NORTHVALE TELEPHONE", plant.KindCommCable, 186),
 		att("A2", "SUMMIT VALLEY ELECTRIC", plant.KindNeutral, 285),
 	})
 }
