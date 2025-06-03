@@ -98,6 +98,7 @@ type Attachment struct {
 	Authorized bool
 	InForce    calendar.Range
 	Voltage    int
+	Face       Face
 	Note       string
 }
 
@@ -126,6 +127,9 @@ func (a Attachment) Validate() error {
 	}
 	if a.Kind == KindPrimary && a.Voltage <= 750 {
 		return fmt.Errorf("%w: %s is primary at %d volts", ErrBadAttachment, a.ID, a.Voltage)
+	}
+	if a.Face != FaceUnknown && !KnownFace(a.Face) {
+		return fmt.Errorf("%w: %s is mounted on the %q", ErrBadAttachment, a.ID, a.Face)
 	}
 	return nil
 }
