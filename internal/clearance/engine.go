@@ -61,12 +61,18 @@ type PoleRule interface {
 // Engine holds the registered rules and runs them.
 type Engine struct {
 	poleRules []PoleRule
+	spanRules []SpanRule
 }
 
 // New builds an engine with the standard rule set registered.
 func New() *Engine {
 	e := &Engine{}
 	e.RegisterPole(SafetyZoneRule{})
+	e.RegisterPole(CommSeparationRule{})
+	e.RegisterPole(ClimbingSpaceRule{})
+	e.RegisterPole(EquipmentRule{})
+	e.RegisterPole(VerticalRunRule{})
+	e.RegisterSpan(GroundClearanceRule{})
 	return e
 }
 
