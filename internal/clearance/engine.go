@@ -73,6 +73,7 @@ func New() *Engine {
 	e.RegisterPole(EquipmentRule{})
 	e.RegisterPole(VerticalRunRule{})
 	e.RegisterSpan(GroundClearanceRule{})
+	e.RegisterSpan(MidspanRule{})
 	return e
 }
 

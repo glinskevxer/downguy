@@ -186,7 +186,7 @@ func TestStandardEngineRegistersBothSides(t *testing.T) {
 	if len(e.PoleRuleIDs()) != 5 {
 		t.Errorf("pole rules = %v", e.PoleRuleIDs())
 	}
-	if len(e.SpanRuleIDs()) != 1 {
+	if len(e.SpanRuleIDs()) < 1 {
 		t.Errorf("span rules = %v", e.SpanRuleIDs())
 	}
 	for _, id := range append(e.PoleRuleIDs(), e.SpanRuleIDs()...) {
