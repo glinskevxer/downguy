@@ -144,20 +144,12 @@ func LowestUsableHeight(p Proposal) (unit.Height, error) {
 	if err != nil {
 		return 0, err
 	}
-	if pred.Clears {
-		return unit.Height(min(int(p.NearHeight), int(p.FarHeight))), nil
-	}
-	short := pred.Required.Sub(pred.Clearance)
 	lowest := p.NearHeight
 	if p.FarHeight < lowest {
 		lowest = p.FarHeight
 	}
-	return lowest.Add(short), nil
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
+	if pred.Clears {
+		return lowest, nil
 	}
-	return b
+	return lowest.Add(pred.Required.Sub(pred.Clearance)), nil
 }

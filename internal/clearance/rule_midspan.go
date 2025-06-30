@@ -66,19 +66,15 @@ func (r MidspanRule) checkStation(c SpanContext, station survey.Station) Finding
 			continue
 		}
 		rule := nesc.MustRule(ruleID)
-		blame := BlamePreExisting
 		owner := lower.att.Owner
-		if c.IsApplicant(lower.att) {
-			blame = BlameApplicant
-		} else if c.IsApplicant(upper.att) {
-			blame = BlameApplicant
+		if !c.IsApplicant(lower.att) && c.IsApplicant(upper.att) {
 			owner = upper.att.Owner
 		}
 		out = append(out, Finding{
 			RuleID: ruleID, Severity: rule.Severity,
 			Pole: string(c.Sheet.FromPole), Span: c.Sheet.ID,
 			Subject: lower.m.Subject, Against: upper.m.Subject,
-			Owner: owner, Blame: blame,
+			Owner: owner, Blame: BlameUnattributed,
 			Measured: measured, Required: required,
 			Detail: fmt.Sprintf("%s under %s at %d feet: %s", lower.m.Subject,
 				upper.m.Subject, station.Feet, nesc.DescribeDeficit(measured, required)),

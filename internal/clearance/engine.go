@@ -139,7 +139,7 @@ func (r SafetyZoneRule) Check(c PoleContext) Findings {
 	return Findings{{
 		RuleID: ruleID, Severity: rule.Severity,
 		Pole: c.PoleID(), Subject: comm.ID, Against: supply.ID,
-		Owner: comm.Owner, Blame: BlamePreExisting,
+		Owner: comm.Owner, Blame: BlameUnattributed,
 		Measured: measured, Required: required,
 		Detail: fmt.Sprintf("%s under %s: %s", comm.ID, supply.ID,
 			nesc.DescribeDeficit(measured, required)),

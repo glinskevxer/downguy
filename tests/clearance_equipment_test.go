@@ -90,17 +90,26 @@ func TestEquipmentAtTheTopOfThePoleHasNothingAboveIt(t *testing.T) {
 	}
 }
 
-func TestEquipmentBlamesTheApplicant(t *testing.T) {
+func TestEquipmentLeavesBlameToTheComparison(t *testing.T) {
 	a := sampleAssembly()
 	a.Add(att("A6", "MERIDIAN FIBER", plant.KindEquipmentBox, 168))
 	s := sampleSheet()
 	s.Measurements = append(s.Measurements, measure("A6", 168, survey.MethodStick))
-	got, err := ruleEngine(clearance.EquipmentRule{}).CheckPole(context(t, s, a))
+	e := ruleEngine(clearance.EquipmentRule{})
+	before, err := e.CheckPole(context(t, sampleSheet(), sampleAssembly()))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(got) != 1 || got[0].Blame != clearance.BlameApplicant {
-		t.Errorf("findings = %v", got)
+	after, err := e.CheckPole(context(t, s, a))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(after) != 1 || after[0].Blame != clearance.BlameUnattributed {
+		t.Fatalf("findings = %v", after)
+	}
+	attributed := clearance.Attribute(before, after)
+	if attributed[0].Blame != clearance.BlameApplicant {
+		t.Errorf("blame = %s", attributed[0].Blame)
 	}
 }
 

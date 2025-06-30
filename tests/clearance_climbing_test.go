@@ -108,8 +108,8 @@ func TestAPowerSupplyOnTheClimbingFaceFails(t *testing.T) {
 	if f.Required.Tenths() != unit.Inches(30).Tenths() {
 		t.Errorf("required = %s", f.Required)
 	}
-	if f.Blame != clearance.BlamePreExisting {
-		t.Errorf("blame = %s", f.Blame)
+	if f.Blame != clearance.BlameUnattributed {
+		t.Errorf("a rule does not decide blame, got %s", f.Blame)
 	}
 }
 
@@ -149,17 +149,28 @@ func TestAnObstructionBelowTheFloorIsNotAViolation(t *testing.T) {
 	}
 }
 
-func TestClimbingSpaceBlamesTheApplicant(t *testing.T) {
+func TestClimbingSpaceOnTheApplicantsOwnBoxIsAttributedByComparison(t *testing.T) {
 	a := sampleAssembly()
 	a.Add(onFace(att("A6", "MERIDIAN FIBER", plant.KindEquipmentBox, 150), plant.FaceClimbing))
 	s := sampleSheet()
 	s.Measurements = append(s.Measurements, measure("A6", 150, survey.MethodStick))
-	got, err := climbEngine().CheckPole(context(t, s, a))
+	before, err := climbEngine().CheckPole(context(t, sampleSheet(), sampleAssembly()))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(got) != 1 || got[0].Blame != clearance.BlameApplicant {
-		t.Errorf("findings = %v", got)
+	after, err := climbEngine().CheckPole(context(t, s, a))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(after) != 1 {
+		t.Fatalf("findings = %v", after)
+	}
+	attributed := clearance.Attribute(before, after)
+	if attributed[0].Blame != clearance.BlameApplicant {
+		t.Errorf("blame = %s", attributed[0].Blame)
+	}
+	if attributed[0].Owner != "MERIDIAN FIBER" {
+		t.Errorf("owner = %q", attributed[0].Owner)
 	}
 }
 

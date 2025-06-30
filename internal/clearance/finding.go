@@ -31,12 +31,17 @@ const (
 	// BlameAggravated means the condition was already there and the new
 	// attachment makes it worse.
 	BlameAggravated Blame = "aggravated"
+	// BlameUnattributed is what a rule emits. A rule sees one pole in one
+	// state and cannot tell a condition it caused from one it inherited, so it
+	// does not try; Attribute decides by comparing the two states.
+	BlameUnattributed Blame = "unattributed"
 )
 
 var blameOrder = map[Blame]int{
-	BlameApplicant:   0,
-	BlameAggravated:  1,
-	BlamePreExisting: 2,
+	BlameApplicant:    0,
+	BlameAggravated:   1,
+	BlamePreExisting:  2,
+	BlameUnattributed: 3,
 }
 
 // KnownBlame reports whether the attribution is one the allocator handles.

@@ -98,7 +98,7 @@ func TestMidspanIgnoresOneAttachersOwnPair(t *testing.T) {
 	}
 }
 
-func TestMidspanBlamesTheApplicant(t *testing.T) {
+func TestMidspanNamesTheApplicantAsTheOwnerToMove(t *testing.T) {
 	a := sampleAssembly()
 	a.Add(att("A5", "MERIDIAN FIBER", plant.KindFiber, 174))
 	sheet := sampleSpanSheet()
@@ -117,8 +117,11 @@ func TestMidspanBlamesTheApplicant(t *testing.T) {
 	if len(got) != 1 {
 		t.Fatalf("findings = %v", got)
 	}
-	if got[0].Blame != clearance.BlameApplicant || got[0].Owner != "MERIDIAN FIBER" {
-		t.Errorf("finding = %+v", got[0])
+	if got[0].Owner != "MERIDIAN FIBER" {
+		t.Errorf("owner = %q", got[0].Owner)
+	}
+	if got[0].Blame != clearance.BlameUnattributed {
+		t.Errorf("a rule does not decide blame, got %s", got[0].Blame)
 	}
 }
 

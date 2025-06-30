@@ -66,8 +66,8 @@ func TestCommSeparationFailsBetweenTwoAttachers(t *testing.T) {
 	if f.Owner != "NORTHVALE TELEPHONE" {
 		t.Errorf("owner = %q", f.Owner)
 	}
-	if f.Blame != clearance.BlamePreExisting {
-		t.Errorf("blame = %s", f.Blame)
+	if f.Blame != clearance.BlameUnattributed {
+		t.Errorf("a rule does not decide blame, got %s", f.Blame)
 	}
 }
 
@@ -133,23 +133,28 @@ func TestCommSeparationOnlyComparesNeighbours(t *testing.T) {
 	}
 }
 
-func TestCommSeparationBlamesTheApplicant(t *testing.T) {
+func TestCommSeparationNamesTheApplicantAsTheOwnerToMove(t *testing.T) {
 	a := sampleAssembly()
 	a.Add(att("A5", "MERIDIAN FIBER", plant.KindFiber, 182))
 	s := sampleSheet()
 	s.Measurements = append(s.Measurements, measure("A5", 182, survey.MethodLaser))
-	got, err := commEngine().CheckPole(context(t, s, a))
+	before, err := commEngine().CheckPole(context(t, sampleSheet(), sampleAssembly()))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(got) != 1 {
-		t.Fatalf("findings = %v", got)
+	after, err := commEngine().CheckPole(context(t, s, a))
+	if err != nil {
+		t.Fatal(err)
 	}
-	if got[0].Blame != clearance.BlameApplicant {
-		t.Errorf("blame = %s", got[0].Blame)
+	if len(after) != 1 {
+		t.Fatalf("findings = %v", after)
 	}
-	if got[0].Owner != "MERIDIAN FIBER" {
-		t.Errorf("owner = %q", got[0].Owner)
+	if after[0].Owner != "MERIDIAN FIBER" {
+		t.Errorf("owner = %q", after[0].Owner)
+	}
+	attributed := clearance.Attribute(before, after)
+	if attributed[0].Blame != clearance.BlameApplicant {
+		t.Errorf("blame = %s", attributed[0].Blame)
 	}
 }
 

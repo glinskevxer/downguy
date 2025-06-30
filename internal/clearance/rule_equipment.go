@@ -37,14 +37,10 @@ func (r EquipmentRule) Check(c PoleContext) Findings {
 		if nesc.Meets(measured, required) {
 			continue
 		}
-		blame := BlamePreExisting
-		if c.IsApplicant(att) || c.IsApplicant(above) {
-			blame = BlameApplicant
-		}
 		out = append(out, Finding{
 			RuleID: ruleID, Severity: rule.Severity,
 			Pole: c.PoleID(), Subject: att.ID, Against: above.ID,
-			Owner: att.Owner, Blame: blame,
+			Owner: att.Owner, Blame: BlameUnattributed,
 			Measured: measured, Required: required,
 			Detail: fmt.Sprintf("%s under %s: %s", att.ID, above.ID,
 				nesc.DescribeDeficit(measured, required)),
@@ -92,14 +88,10 @@ func (r VerticalRunRule) Check(c PoleContext) Findings {
 			if nesc.Meets(measured, required) {
 				continue
 			}
-			blame := BlamePreExisting
-			if c.IsApplicant(riser) {
-				blame = BlameApplicant
-			}
 			out = append(out, Finding{
 				RuleID: ruleID, Severity: rule.Severity,
 				Pole: c.PoleID(), Subject: riser.ID, Against: other.ID,
-				Owner: riser.Owner, Blame: blame,
+				Owner: riser.Owner, Blame: BlameUnattributed,
 				Measured: measured, Required: required,
 				Detail: fmt.Sprintf("%s passes %s on the %s: %s", riser.ID, other.ID,
 					riser.Face.Name(), nesc.DescribeDeficit(measured, required)),

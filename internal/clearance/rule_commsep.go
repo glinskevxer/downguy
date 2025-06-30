@@ -35,18 +35,16 @@ func (r CommSeparationRule) Check(c PoleContext) Findings {
 			continue
 		}
 		rule := nesc.MustRule(ruleID)
-		blame := BlamePreExisting
+		// The lower facility is the one that has to move, so it is named as
+		// the owner unless the applicant is the one above.
 		owner := lower.Owner
-		if c.IsApplicant(lower) {
-			blame = BlameApplicant
-		} else if c.IsApplicant(upper) {
-			blame = BlameApplicant
+		if !c.IsApplicant(lower) && c.IsApplicant(upper) {
 			owner = upper.Owner
 		}
 		out = append(out, Finding{
 			RuleID: ruleID, Severity: rule.Severity,
 			Pole: c.PoleID(), Subject: lower.ID, Against: upper.ID,
-			Owner: owner, Blame: blame,
+			Owner: owner, Blame: BlameUnattributed,
 			Measured: measured, Required: required,
 			Detail: fmt.Sprintf("%s under %s: %s", lower.ID, upper.ID,
 				nesc.DescribeDeficit(measured, required)),

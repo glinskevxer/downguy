@@ -40,14 +40,10 @@ func (r ClimbingSpaceRule) Check(c PoleContext) Findings {
 			// around, and the code treats it that way too.
 			continue
 		}
-		blame := BlamePreExisting
-		if c.IsApplicant(att) {
-			blame = BlameApplicant
-		}
 		out = append(out, Finding{
 			RuleID: ruleID, Severity: rule.Severity,
 			Pole: c.PoleID(), Subject: att.ID,
-			Owner: att.Owner, Blame: blame,
+			Owner: att.Owner, Blame: BlameUnattributed,
 			Measured: 0, Required: required,
 			Detail: fmt.Sprintf("%s is a %s on the %s at %s, inside the %s climbing square",
 				att.ID, att.Kind, att.Face.Name(), att.Height, required),

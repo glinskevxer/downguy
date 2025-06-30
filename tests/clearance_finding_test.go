@@ -18,7 +18,7 @@ func finding(rule string, sev nesc.Severity, blame clearance.Blame, owner string
 }
 
 func TestBlameSet(t *testing.T) {
-	for _, b := range []clearance.Blame{clearance.BlamePreExisting, clearance.BlameApplicant, clearance.BlameAggravated} {
+	for _, b := range []clearance.Blame{clearance.BlamePreExisting, clearance.BlameApplicant, clearance.BlameAggravated, clearance.BlameUnattributed} {
 		if !clearance.KnownBlame(b) {
 			t.Errorf("%s should be a known attribution", b)
 		}

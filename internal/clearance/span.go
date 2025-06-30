@@ -113,15 +113,11 @@ func (r GroundClearanceRule) Check(c SpanContext) Findings {
 				continue
 			}
 			rule := nesc.MustRule(ruleID)
-			blame := BlamePreExisting
-			if c.IsApplicant(att) {
-				blame = BlameApplicant
-			}
 			out = append(out, Finding{
 				RuleID: ruleID, Severity: rule.Severity,
 				Pole: string(c.Sheet.FromPole), Span: c.Sheet.ID,
 				Subject: m.Subject, Against: string(station.Cover),
-				Owner: att.Owner, Blame: blame,
+				Owner: att.Owner, Blame: BlameUnattributed,
 				Measured: m.Height, Required: required,
 				Detail: fmt.Sprintf("%s at %d feet over %s: %s", m.Subject, station.Feet,
 					station.Cover.Name(), nesc.DescribeDeficit(m.Height, required)),
