@@ -43,6 +43,14 @@ func (m Money) Neg() Money { return -m }
 // IsZero reports whether the amount is exactly nothing.
 func (m Money) IsZero() bool { return m == 0 }
 
+// Abs returns the magnitude of the amount.
+func (m Money) Abs() Money {
+	if m < 0 {
+		return -m
+	}
+	return m
+}
+
 // String prints the amount with a currency sign and two decimal places.
 func (m Money) String() string {
 	sign := ""
