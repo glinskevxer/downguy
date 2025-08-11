@@ -48,8 +48,8 @@ type Policy struct {
 	// OwnerPaysStructural bills the pole owner for a pole replacement where
 	// the pole was already overloaded before the application.
 	OwnerPaysStructural bool
-	// SharedBetrayal is the share of a pre existing condition that falls on
-	// the applicant when the payer is shared.
+	// ApplicantShare is the fraction of a pre existing condition that falls
+	// on the applicant when the payer is shared.
 	ApplicantShare unit.BasisPoints
 }
 
