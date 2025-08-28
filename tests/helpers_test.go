@@ -1,8 +1,11 @@
 package tests
 
 import (
+	"strconv"
+	"strings"
 	"testing"
 
+	"github.com/glinskevxer/downguy/internal/plant"
 	"github.com/glinskevxer/downguy/internal/sagten"
 )
 
@@ -15,4 +18,27 @@ func sagtenLookup(t *testing.T, code string) (sagten.Conductor, error) {
 		return sagten.Conductor{}, err
 	}
 	return c, nil
+}
+
+// plantID turns a literal tag into a PoleID for a fixture, failing loudly on a
+// typo rather than quietly building a record nothing can find.
+func plantID(text string) plant.PoleID {
+	id, err := plant.ParsePoleID(text)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
+// atoiPart pulls one dash separated field out of an ISO date for a fixture.
+func atoiPart(iso string, field int) int {
+	parts := strings.Split(iso, "-")
+	if field >= len(parts) {
+		panic("no field " + strconv.Itoa(field) + " in " + iso)
+	}
+	n, err := strconv.Atoi(parts[field])
+	if err != nil {
+		panic(err)
+	}
+	return n
 }
