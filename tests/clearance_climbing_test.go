@@ -77,7 +77,7 @@ func TestAttachmentValidateRejectsABadFace(t *testing.T) {
 }
 
 func TestClimbingSpaceClearOnAnOrdinaryPole(t *testing.T) {
-	got, err := climbEngine().CheckPole(context(t, sampleSheet(), sampleAssembly()))
+	got, err := climbEngine().CheckPole(poleContext(t, sampleSheet(), sampleAssembly()))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,7 +91,7 @@ func TestAPowerSupplyOnTheClimbingFaceFails(t *testing.T) {
 	a.Add(onFace(att("A6", "RIDGEPORT CABLEVISION", plant.KindPowerSupply, 140), plant.FaceClimbing))
 	s := sampleSheet()
 	s.Measurements = append(s.Measurements, measure("A6", 140, survey.MethodStick))
-	got, err := climbEngine().CheckPole(context(t, s, a))
+	got, err := climbEngine().CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +118,7 @@ func TestAWireAcrossTheClimbingFaceIsFine(t *testing.T) {
 	a.Add(onFace(att("A6", "MERIDIAN FIBER", plant.KindFiber, 174), plant.FaceClimbing))
 	s := sampleSheet()
 	s.Measurements = append(s.Measurements, measure("A6", 174, survey.MethodStick))
-	got, err := climbEngine().CheckPole(context(t, s, a))
+	got, err := climbEngine().CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,7 +132,7 @@ func TestAnObstructionBelowTheFloorIsNotAViolation(t *testing.T) {
 	a.Add(onFace(att("A6", "RIDGEPORT CABLEVISION", plant.KindEquipmentBox, 60), plant.FaceClimbing))
 	s := sampleSheet()
 	s.Measurements = append(s.Measurements, measure("A6", 60, survey.MethodStick))
-	got, err := climbEngine().CheckPole(context(t, s, a))
+	got, err := climbEngine().CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -140,7 +140,7 @@ func TestAnObstructionBelowTheFloorIsNotAViolation(t *testing.T) {
 		t.Errorf("six feet up is below the climbing square, got %v", got)
 	}
 	s.Measurements[len(s.Measurements)-1].Height = clearance.ClimbingSpaceFloor
-	got, err = climbEngine().CheckPole(context(t, s, a))
+	got, err = climbEngine().CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,11 +154,11 @@ func TestClimbingSpaceOnTheApplicantsOwnBoxIsAttributedByComparison(t *testing.T
 	a.Add(onFace(att("A6", "MERIDIAN FIBER", plant.KindEquipmentBox, 150), plant.FaceClimbing))
 	s := sampleSheet()
 	s.Measurements = append(s.Measurements, measure("A6", 150, survey.MethodStick))
-	before, err := climbEngine().CheckPole(context(t, sampleSheet(), sampleAssembly()))
+	before, err := climbEngine().CheckPole(poleContext(t, sampleSheet(), sampleAssembly()))
 	if err != nil {
 		t.Fatal(err)
 	}
-	after, err := climbEngine().CheckPole(context(t, s, a))
+	after, err := climbEngine().CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}

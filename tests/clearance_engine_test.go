@@ -10,7 +10,7 @@ import (
 	"github.com/glinskevxer/downguy/internal/unit"
 )
 
-func context(t *testing.T, sheet survey.PoleSheet, a *plant.Assembly) clearance.PoleContext {
+func poleContext(t *testing.T, sheet survey.PoleSheet, a *plant.Assembly) clearance.PoleContext {
 	t.Helper()
 	applied, err := survey.Apply(sheet, a)
 	if err != nil {
@@ -23,7 +23,7 @@ func context(t *testing.T, sheet survey.PoleSheet, a *plant.Assembly) clearance.
 }
 
 func TestContextAccessors(t *testing.T) {
-	c := context(t, sampleSheet(), sampleAssembly())
+	c := poleContext(t, sampleSheet(), sampleAssembly())
 	if c.PoleID() != "NW-441829" {
 		t.Errorf("pole = %q", c.PoleID())
 	}
@@ -45,7 +45,7 @@ func TestContextAccessors(t *testing.T) {
 }
 
 func TestContextValidate(t *testing.T) {
-	c := context(t, sampleSheet(), sampleAssembly())
+	c := poleContext(t, sampleSheet(), sampleAssembly())
 	if err := c.Validate(); err != nil {
 		t.Fatalf("a good context failed: %v", err)
 	}
@@ -53,12 +53,12 @@ func TestContextValidate(t *testing.T) {
 	if err := empty.Validate(); err == nil {
 		t.Error("no assembly should be rejected")
 	}
-	bad := context(t, sampleSheet(), sampleAssembly())
+	bad := poleContext(t, sampleSheet(), sampleAssembly())
 	bad.District = nesc.District("tropical")
 	if err := bad.Validate(); err == nil {
 		t.Error("an unknown district should be rejected")
 	}
-	bad = context(t, sampleSheet(), sampleAssembly())
+	bad = poleContext(t, sampleSheet(), sampleAssembly())
 	bad.Grade = nesc.Grade("Z")
 	if err := bad.Validate(); err == nil {
 		t.Error("an unknown grade should be rejected")
@@ -87,7 +87,7 @@ func TestEngineRegistration(t *testing.T) {
 }
 
 func TestSafetyZonePassesOnAWellBuiltPole(t *testing.T) {
-	got, err := clearance.New().CheckPole(context(t, sampleSheet(), sampleAssembly()))
+	got, err := clearance.New().CheckPole(poleContext(t, sampleSheet(), sampleAssembly()))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -100,7 +100,7 @@ func TestSafetyZoneFailsWhenCommunicationIsTooHigh(t *testing.T) {
 	s := sampleSheet()
 	// Lift the cable to within two feet of the neutral.
 	s.Measurements[0].Height = unit.Tenths(265)
-	got, err := clearance.New().CheckPole(context(t, s, sampleAssembly()))
+	got, err := clearance.New().CheckPole(poleContext(t, s, sampleAssembly()))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,7 +139,7 @@ func TestSafetyZoneUsesTheFullFigureWhenTheLowestSupplyIsNotTheNeutral(t *testin
 	s := sampleSheet()
 	s.Measurements = append(s.Measurements, measure("A5", 232, survey.MethodLaser))
 	s.Measurements[0].Height = unit.Tenths(202)
-	got, err := clearance.New().CheckPole(context(t, s, a))
+	got, err := clearance.New().CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -165,7 +165,7 @@ func TestSafetyZoneDoesNotApplyToASingleUsePole(t *testing.T) {
 			measure("A1", 335, survey.MethodLaser),
 		},
 	}
-	got, err := clearance.New().CheckPole(context(t, s, supplyOnly))
+	got, err := clearance.New().CheckPole(poleContext(t, s, supplyOnly))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -175,7 +175,7 @@ func TestSafetyZoneDoesNotApplyToASingleUsePole(t *testing.T) {
 }
 
 func TestCheckPoleRejectsABadContext(t *testing.T) {
-	c := context(t, sampleSheet(), sampleAssembly())
+	c := poleContext(t, sampleSheet(), sampleAssembly())
 	c.District = nesc.District("tropical")
 	if _, err := clearance.New().CheckPole(c); err == nil {
 		t.Error("an unknown district should be rejected")

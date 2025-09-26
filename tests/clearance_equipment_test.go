@@ -22,7 +22,7 @@ func TestEquipmentClearsWhenThereIsRoomOverIt(t *testing.T) {
 	a.Add(att("A6", "RIDGEPORT CABLEVISION", plant.KindPowerSupply, 140))
 	s := sampleSheet()
 	s.Measurements = append(s.Measurements, measure("A6", 140, survey.MethodStick))
-	got, err := ruleEngine(clearance.EquipmentRule{}).CheckPole(context(t, s, a))
+	got, err := ruleEngine(clearance.EquipmentRule{}).CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func TestEquipmentTooCloseToTheCableAboveIt(t *testing.T) {
 	a.Add(att("A6", "RIDGEPORT CABLEVISION", plant.KindPowerSupply, 168))
 	s := sampleSheet()
 	s.Measurements = append(s.Measurements, measure("A6", 168, survey.MethodStick))
-	got, err := ruleEngine(clearance.EquipmentRule{}).CheckPole(context(t, s, a))
+	got, err := ruleEngine(clearance.EquipmentRule{}).CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,7 +63,7 @@ func TestOnlyBoxesAreCheckedAsEquipment(t *testing.T) {
 	a.Add(att("A6", "RIDGEPORT CABLEVISION", plant.KindCommDrop, 168))
 	s := sampleSheet()
 	s.Measurements = append(s.Measurements, measure("A6", 168, survey.MethodStick))
-	got, err := ruleEngine(clearance.EquipmentRule{}).CheckPole(context(t, s, a))
+	got, err := ruleEngine(clearance.EquipmentRule{}).CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +81,7 @@ func TestEquipmentAtTheTopOfThePoleHasNothingAboveIt(t *testing.T) {
 		Condition:    plant.ConditionSound,
 		Measurements: []survey.Measurement{measure("A6", 200, survey.MethodStick)},
 	}
-	got, err := ruleEngine(clearance.EquipmentRule{}).CheckPole(context(t, s, a))
+	got, err := ruleEngine(clearance.EquipmentRule{}).CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,11 +96,11 @@ func TestEquipmentLeavesBlameToTheComparison(t *testing.T) {
 	s := sampleSheet()
 	s.Measurements = append(s.Measurements, measure("A6", 168, survey.MethodStick))
 	e := ruleEngine(clearance.EquipmentRule{})
-	before, err := e.CheckPole(context(t, sampleSheet(), sampleAssembly()))
+	before, err := e.CheckPole(poleContext(t, sampleSheet(), sampleAssembly()))
 	if err != nil {
 		t.Fatal(err)
 	}
-	after, err := e.CheckPole(context(t, s, a))
+	after, err := e.CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +118,7 @@ func TestARiserClearsWhenNothingSharesItsFace(t *testing.T) {
 	a.Add(onFace(att("A6", "RIDGEPORT CABLEVISION", plant.KindRiser, 100), plant.FaceStreet))
 	s := sampleSheet()
 	s.Measurements = append(s.Measurements, measure("A6", 100, survey.MethodStick))
-	got, err := ruleEngine(clearance.VerticalRunRule{}).CheckPole(context(t, s, a))
+	got, err := ruleEngine(clearance.VerticalRunRule{}).CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,7 +136,7 @@ func TestARiserTooCloseToSomethingOnItsOwnFace(t *testing.T) {
 		measure("A6", 100, survey.MethodStick),
 		measure("A7", 101, survey.MethodStick),
 	)
-	got, err := ruleEngine(clearance.VerticalRunRule{}).CheckPole(context(t, s, a))
+	got, err := ruleEngine(clearance.VerticalRunRule{}).CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,7 +157,7 @@ func TestARiserWithNoRecordedFaceIsNotChecked(t *testing.T) {
 	a.Add(att("A6", "RIDGEPORT CABLEVISION", plant.KindRiser, 186))
 	s := sampleSheet()
 	s.Measurements = append(s.Measurements, measure("A6", 186, survey.MethodStick))
-	got, err := ruleEngine(clearance.VerticalRunRule{}).CheckPole(context(t, s, a))
+	got, err := ruleEngine(clearance.VerticalRunRule{}).CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -180,7 +180,7 @@ func TestBothRulesRunTogether(t *testing.T) {
 	if len(ids) != 2 || ids[0] != "NESC-238A" || ids[1] != "NESC-239E" {
 		t.Errorf("registered = %v", ids)
 	}
-	got, err := e.CheckPole(context(t, s, a))
+	got, err := e.CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}

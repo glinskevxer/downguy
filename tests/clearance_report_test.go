@@ -16,7 +16,7 @@ func builder() *clearance.Builder {
 
 func TestReportOnACleanApplication(t *testing.T) {
 	b := builder()
-	if err := b.AddPole(context(t, sampleSheet(), sampleAssembly()), context(t, sampleSheet(), sampleAssembly())); err != nil {
+	if err := b.AddPole(poleContext(t, sampleSheet(), sampleAssembly()), poleContext(t, sampleSheet(), sampleAssembly())); err != nil {
 		t.Fatal(err)
 	}
 	if err := b.AddSpan(spanContext(sampleSpanSheet()), spanContext(sampleSpanSheet())); err != nil {
@@ -48,7 +48,7 @@ func TestReportBlamesTheApplicantForWhatItAdds(t *testing.T) {
 	afterSheet.Measurements = append(afterSheet.Measurements, measure("A7", 182, survey.MethodLaser))
 
 	b := builder()
-	if err := b.AddPole(context(t, sampleSheet(), sampleAssembly()), context(t, afterSheet, after)); err != nil {
+	if err := b.AddPole(poleContext(t, sampleSheet(), sampleAssembly()), poleContext(t, afterSheet, after)); err != nil {
 		t.Fatal(err)
 	}
 	r := b.Build()
@@ -73,7 +73,7 @@ func TestReportKeepsAPreExistingViolationOffTheApplicant(t *testing.T) {
 	after.Measurements = append([]survey.Measurement{}, before.Measurements...)
 
 	b := builder()
-	if err := b.AddPole(context(t, before, sampleAssembly()), context(t, after, sampleAssembly())); err != nil {
+	if err := b.AddPole(poleContext(t, before, sampleAssembly()), poleContext(t, after, sampleAssembly())); err != nil {
 		t.Fatal(err)
 	}
 	r := b.Build()
@@ -129,7 +129,7 @@ func TestReportSkips(t *testing.T) {
 	b := builder()
 	b.Skip("NW-441840", "no survey on file")
 	b.Skip("NW-441835", "access denied by property owner")
-	bad := context(t, sampleSheet(), sampleAssembly())
+	bad := poleContext(t, sampleSheet(), sampleAssembly())
 	bad.District = nesc.District("tropical")
 	if err := b.AddPole(bad, bad); err == nil {
 		t.Error("a bad context should be an error")
@@ -148,11 +148,11 @@ func TestReportSkips(t *testing.T) {
 
 func TestBuilderSealsAfterBuild(t *testing.T) {
 	b := builder()
-	if err := b.AddPole(context(t, sampleSheet(), sampleAssembly()), context(t, sampleSheet(), sampleAssembly())); err != nil {
+	if err := b.AddPole(poleContext(t, sampleSheet(), sampleAssembly()), poleContext(t, sampleSheet(), sampleAssembly())); err != nil {
 		t.Fatal(err)
 	}
 	first := b.Build()
-	if err := b.AddPole(context(t, sampleSheet(), sampleAssembly()), context(t, sampleSheet(), sampleAssembly())); err == nil {
+	if err := b.AddPole(poleContext(t, sampleSheet(), sampleAssembly()), poleContext(t, sampleSheet(), sampleAssembly())); err == nil {
 		t.Error("adding after building should be refused")
 	}
 	if err := b.AddSpan(spanContext(sampleSpanSheet()), spanContext(sampleSpanSheet())); err == nil {
@@ -170,7 +170,7 @@ func TestReportByOwner(t *testing.T) {
 	afterSheet := sampleSheet()
 	afterSheet.Measurements = append(afterSheet.Measurements, measure("A7", 182, survey.MethodLaser))
 	b := builder()
-	if err := b.AddPole(context(t, sampleSheet(), sampleAssembly()), context(t, afterSheet, after)); err != nil {
+	if err := b.AddPole(poleContext(t, sampleSheet(), sampleAssembly()), poleContext(t, afterSheet, after)); err != nil {
 		t.Fatal(err)
 	}
 	byOwner := b.Build().ByOwner()

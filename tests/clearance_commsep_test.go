@@ -31,7 +31,7 @@ func TestSameAttacherFolding(t *testing.T) {
 }
 
 func TestCommSeparationPassesOnAWellBuiltPole(t *testing.T) {
-	got, err := commEngine().CheckPole(context(t, sampleSheet(), sampleAssembly()))
+	got, err := commEngine().CheckPole(poleContext(t, sampleSheet(), sampleAssembly()))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +43,7 @@ func TestCommSeparationPassesOnAWellBuiltPole(t *testing.T) {
 func TestCommSeparationFailsBetweenTwoAttachers(t *testing.T) {
 	s := sampleSheet()
 	s.Measurements[2].Height = unit.Tenths(196)
-	got, err := commEngine().CheckPole(context(t, s, sampleAssembly()))
+	got, err := commEngine().CheckPole(poleContext(t, s, sampleAssembly()))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +86,7 @@ func TestOneAttacherMaySitCloserToItself(t *testing.T) {
 			measure("A4", 196, survey.MethodLaser),
 		},
 	}
-	got, err := commEngine().CheckPole(context(t, s, a))
+	got, err := commEngine().CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,7 +94,7 @@ func TestOneAttacherMaySitCloserToItself(t *testing.T) {
 		t.Errorf("four tenths clears the four inch same owner figure, got %v", got)
 	}
 	s.Measurements[2].Height = unit.Tenths(198)
-	got, err = commEngine().CheckPole(context(t, s, a))
+	got, err = commEngine().CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -111,7 +111,7 @@ func TestCommSeparationOnlyComparesNeighbours(t *testing.T) {
 	a.Add(att("A5", "MERIDIAN FIBER", plant.KindFiber, 174))
 	s := sampleSheet()
 	s.Measurements = append(s.Measurements, measure("A5", 174, survey.MethodLaser))
-	got, err := commEngine().CheckPole(context(t, s, a))
+	got, err := commEngine().CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,7 +121,7 @@ func TestCommSeparationOnlyComparesNeighbours(t *testing.T) {
 	// Now bunch the bottom two. Only that pair should be reported, not the
 	// cable three feet above them.
 	s.Measurements[len(s.Measurements)-1].Height = unit.Tenths(182)
-	got, err = commEngine().CheckPole(context(t, s, a))
+	got, err = commEngine().CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,11 +138,11 @@ func TestCommSeparationNamesTheApplicantAsTheOwnerToMove(t *testing.T) {
 	a.Add(att("A5", "MERIDIAN FIBER", plant.KindFiber, 182))
 	s := sampleSheet()
 	s.Measurements = append(s.Measurements, measure("A5", 182, survey.MethodLaser))
-	before, err := commEngine().CheckPole(context(t, sampleSheet(), sampleAssembly()))
+	before, err := commEngine().CheckPole(poleContext(t, sampleSheet(), sampleAssembly()))
 	if err != nil {
 		t.Fatal(err)
 	}
-	after, err := commEngine().CheckPole(context(t, s, a))
+	after, err := commEngine().CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -171,7 +171,7 @@ func TestCommSeparationNeedsTwoFacilities(t *testing.T) {
 			measure("A3", 200, survey.MethodLaser),
 		},
 	}
-	got, err := commEngine().CheckPole(context(t, s, a))
+	got, err := commEngine().CheckPole(poleContext(t, s, a))
 	if err != nil {
 		t.Fatal(err)
 	}
