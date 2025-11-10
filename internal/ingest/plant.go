@@ -1,7 +1,6 @@
 package ingest
 
 import (
-	"errors"
 	"io"
 	"strconv"
 
@@ -237,6 +236,3 @@ func truthy(text string) bool {
 }
 
 func normalise(text string) string { return FoldColumn(text) }
-
-// ErrNoRows is returned when an import produced nothing usable at all.
-var ErrNoRows = errors.New("ingest: no usable rows")
