@@ -14,6 +14,22 @@ import (
 // what the tests and the dry run mode use.
 const Memory = ":memory:"
 
+// OpenRaw connects to a database without migrating it. It is for a caller
+// that has to know what version the database was at before anything touched
+// it, which is exactly one caller and is not worth exporting the whole
+// connection setup for.
+func OpenRaw(dsn string) (*sql.DB, error) {
+	if strings.TrimSpace(dsn) == "" {
+		return nil, fmt.Errorf("%w: no data source given", ErrMigration)
+	}
+	db, err := sql.Open("sqlite", dsn)
+	if err != nil {
+		return nil, fmt.Errorf("%w: opening %s: %v", ErrMigration, dsn, err)
+	}
+	db.SetMaxOpenConns(1)
+	return db, nil
+}
+
 // Open connects to a database, turns on the settings this system depends on,
 // and migrates it to the latest schema.
 func Open(ctx context.Context, dsn string) (*sql.DB, error) {

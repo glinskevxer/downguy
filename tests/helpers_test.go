@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -41,4 +42,9 @@ func atoiPart(iso string, field int) int {
 		panic(err)
 	}
 	return n
+}
+
+// writeFile drops a fixture file into a test's own directory.
+func writeFile(path, body string) error {
+	return os.WriteFile(path, []byte(body), 0o600)
 }
