@@ -27,6 +27,11 @@ type Poles struct {
 // NewPoles builds a pole repository.
 func NewPoles(db *sql.DB) *Poles { return &Poles{db: db} }
 
+// DB returns the handle the repository was built over, so a caller holding one
+// repository can build another without threading the connection through
+// everything in between.
+func (p *Poles) DB() *sql.DB { return p.db }
+
 // Put files a pole, replacing any earlier record of the same tag. The record
 // is validated first, so nothing invalid can reach the table even through a
 // caller that forgot to check.
