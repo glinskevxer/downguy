@@ -146,6 +146,14 @@ func (t *Table) MaxTension() (Row, bool) {
 	return worst, true
 }
 
+// TensionTolerance is how far over its working limit a row may read before it
+// counts as over tension, in pounds. The design case is reached by solving
+// back to a stringing tension and then forward again, and the two passes of
+// the change of state cubic do not land on the identical bit pattern, so the
+// row the conductor was designed at can read a fraction of a pound over its
+// own limit. Nobody strings a conductor to a tenth of a pound either.
+const TensionTolerance = 1.0
+
 // OverTension returns the rows whose tension is above the working limit for
 // their condition, sorted by how far over they are. An empty result is a
 // conductor strung within its limits everywhere in the run.
@@ -153,7 +161,7 @@ func (t *Table) OverTension() []Row {
 	var out []Row
 	for _, r := range t.Rows {
 		limit := t.Conductor.MaxTension(r.Iced)
-		if r.Tension > limit {
+		if r.Tension > limit+TensionTolerance {
 			out = append(out, r)
 		}
 	}

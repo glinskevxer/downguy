@@ -189,3 +189,29 @@ func TestRowFormatting(t *testing.T) {
 		t.Errorf("row line = %q", line)
 	}
 }
+
+func TestTheDesignRowIsNotItsOwnOverTension(t *testing.T) {
+	c := sparrow(t)
+	// The design case is solved back to a stringing tension and forward again,
+	// so it lands a fraction of a pound either side of its own limit. Neither
+	// side should be reported.
+	for _, span := range []float64{150, 225, 320, 400} {
+		tbl, err := sagten.BuildTable(c, nesc.Heavy, span, span)
+		if err != nil {
+			t.Fatalf("%v ft: %v", span, err)
+		}
+		row, ok := tbl.DistrictRow(nesc.Heavy)
+		if !ok {
+			t.Fatalf("%v ft: no heavy district row", span)
+		}
+		limit := c.MaxTension(true)
+		if diff := row.Tension - limit; diff > sagten.TensionTolerance || diff < -sagten.TensionTolerance {
+			t.Errorf("%v ft: the design row reads %.4f against a limit of %.4f", span, row.Tension, limit)
+		}
+		for _, over := range tbl.OverTension() {
+			if over.Label == row.Label {
+				t.Errorf("%v ft: the design row was reported over its own limit", span)
+			}
+		}
+	}
+}

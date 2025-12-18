@@ -104,7 +104,7 @@ func runPole(env *Env) int {
 	}
 
 	var spans []plant.SpanRecord
-	if f.Set().Lookup("spans").Value.String() == "true" {
+	if flagBool(f, "spans") {
 		spans, err = loader.Spans().AtPole(ctx, id)
 		if err != nil {
 			return env.Fail(CodeInternal, "%v", err)

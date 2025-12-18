@@ -68,11 +68,8 @@ func runImport(env *Env) int {
 		source = file
 	}
 
-	dryRun := f.Set().Lookup("dry-run").Value.String() == "true"
-	maxProblems := 20
-	if _, err := fmt.Sscanf(f.Set().Lookup("max-problems").Value.String(), "%d", &maxProblems); err != nil {
-		maxProblems = 20
-	}
+	dryRun := flagBool(f, "dry-run")
+	maxProblems := flagInt(f, "max-problems", 20)
 
 	ctx := context.Background()
 	var db *store.Plant
