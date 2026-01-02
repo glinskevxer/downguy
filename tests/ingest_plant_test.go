@@ -117,7 +117,7 @@ func TestImportPolesReadsAnOptionalSetDepth(t *testing.T) {
 }
 
 const attachmentCSV = `attachment_id,pole_id,owner,kind,height,authorized,in_force_from,voltage,face
-A1,NW-441829,SUMMIT VALLEY ELECTRIC,primary,33.5,Y,2001-06-01,7620,
+A1,NW-441829,SUMMIT VALLEY ELECTRIC,primary,31.5,Y,2001-06-01,7620,
 A3,NW-441829,RIDGEPORT CABLEVISION,comm cable,20.0,yes,2019-04-01,,street
 A9,NW-441829,UNIDENTIFIED,comm_cable,17.4,n,,,
 `
