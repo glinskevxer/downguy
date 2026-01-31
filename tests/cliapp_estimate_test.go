@@ -21,6 +21,7 @@ const planJSON = `{
 }`
 
 func TestEstimatePricesAPlan(t *testing.T) {
+	t.Parallel()
 	got := cliIn(planJSON, "estimate", "-on", "2025-06-01")
 	if got.Code != cliapp.CodeOK {
 		t.Fatalf("code = %d, stderr = %q", got.Code, got.Stderr)
@@ -36,6 +37,7 @@ func TestEstimatePricesAPlan(t *testing.T) {
 }
 
 func TestEstimateWithAQuote(t *testing.T) {
+	t.Parallel()
 	got := cliIn(planJSON, "estimate", "-on", "2025-06-01", "-quote")
 	if got.Code != cliapp.CodeOK {
 		t.Fatalf("code = %d, stderr = %q", got.Code, got.Stderr)
@@ -48,6 +50,7 @@ func TestEstimateWithAQuote(t *testing.T) {
 }
 
 func TestEstimateAsJSON(t *testing.T) {
+	t.Parallel()
 	got := cliIn(planJSON, "estimate", "-on", "2025-06-01", "-quote", "-json")
 	if got.Code != cliapp.CodeOK {
 		t.Fatalf("code = %d, stderr = %q", got.Code, got.Stderr)
@@ -79,6 +82,7 @@ func TestEstimateAsJSON(t *testing.T) {
 }
 
 func TestEstimateRepricesAgainstADifferentBook(t *testing.T) {
+	t.Parallel()
 	old := cliIn(planJSON, "estimate", "-on", "2025-06-01", "-json")
 	fresh := cliIn(planJSON, "estimate", "-on", "2026-06-01", "-json")
 	if old.Code != cliapp.CodeOK || fresh.Code != cliapp.CodeOK {
@@ -97,6 +101,7 @@ func TestEstimateRepricesAgainstADifferentBook(t *testing.T) {
 }
 
 func TestEstimateReportsWhatItCannotPrice(t *testing.T) {
+	t.Parallel()
 	body := `{"application":"APP-1","items":[{"id":"MR-1","action":"resag","pole":"NW-441829","subject":"A3","because":["x"]}]}`
 	got := cliIn(body, "estimate", "-on", "2025-06-01")
 	if got.Code != cliapp.CodeOK {
@@ -105,6 +110,7 @@ func TestEstimateReportsWhatItCannotPrice(t *testing.T) {
 }
 
 func TestEstimateRejectsBadUse(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		stdin string
 		args  []string
@@ -130,6 +136,7 @@ func TestEstimateRejectsBadUse(t *testing.T) {
 }
 
 func TestCostbookPrints(t *testing.T) {
+	t.Parallel()
 	got := cli("costbook", "-on", "2025-06-01")
 	if got.Code != cliapp.CodeOK {
 		t.Fatalf("code = %d, stderr = %q", got.Code, got.Stderr)
@@ -142,6 +149,7 @@ func TestCostbookPrints(t *testing.T) {
 }
 
 func TestCostbookAsJSONAndAcrossThePriceRise(t *testing.T) {
+	t.Parallel()
 	old := cli("costbook", "-on", "2025-06-01", "-json")
 	fresh := cli("costbook", "-on", "2026-06-01", "-json")
 	if old.Code != cliapp.CodeOK || fresh.Code != cliapp.CodeOK {
@@ -175,6 +183,7 @@ func TestCostbookAsJSONAndAcrossThePriceRise(t *testing.T) {
 }
 
 func TestCostbookRejectsBadUse(t *testing.T) {
+	t.Parallel()
 	cases := [][]string{
 		{"costbook"},
 		{"costbook", "-on", "2024-01-01"},

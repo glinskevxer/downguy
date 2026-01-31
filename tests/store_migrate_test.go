@@ -20,6 +20,7 @@ func openStore(t *testing.T) *sql.DB {
 }
 
 func TestMigrationsAreNumberedAndOrdered(t *testing.T) {
+	t.Parallel()
 	all := store.Migrations()
 	if len(all) < 5 {
 		t.Fatalf("migrations = %d", len(all))
@@ -43,6 +44,7 @@ func TestMigrationsAreNumberedAndOrdered(t *testing.T) {
 }
 
 func TestOpenMigratesToTheLatestVersion(t *testing.T) {
+	t.Parallel()
 	db := openStore(t)
 	got, err := store.CurrentVersion(context.Background(), db)
 	if err != nil {
@@ -54,6 +56,7 @@ func TestOpenMigratesToTheLatestVersion(t *testing.T) {
 }
 
 func TestMigrateIsIdempotent(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	db := openStore(t)
 	ran, err := store.Migrate(ctx, db)
@@ -69,6 +72,7 @@ func TestMigrateIsIdempotent(t *testing.T) {
 }
 
 func TestMigrateRunsEveryStepOnAFreshDatabase(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	db, err := sql.Open("sqlite", store.Memory)
 	if err != nil {
@@ -86,6 +90,7 @@ func TestMigrateRunsEveryStepOnAFreshDatabase(t *testing.T) {
 }
 
 func TestTheExpectedTablesExist(t *testing.T) {
+	t.Parallel()
 	got, err := store.Tables(context.Background(), openStore(t))
 	if err != nil {
 		t.Fatal(err)
@@ -111,6 +116,7 @@ func TestTheExpectedTablesExist(t *testing.T) {
 }
 
 func TestForeignKeysAreOn(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	db := openStore(t)
 	on, err := store.ForeignKeysOn(ctx, db)
@@ -129,6 +135,7 @@ func TestForeignKeysAreOn(t *testing.T) {
 }
 
 func TestOpenOnDisk(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	path := filepath.Join(t.TempDir(), "downguy.db")
 	db, err := store.Open(ctx, path)
@@ -165,6 +172,7 @@ func TestOpenOnDisk(t *testing.T) {
 }
 
 func TestOpenRejectsAnEmptyDataSource(t *testing.T) {
+	t.Parallel()
 	if _, err := store.Open(context.Background(), "  "); err == nil {
 		t.Error("an empty data source should be rejected")
 	}

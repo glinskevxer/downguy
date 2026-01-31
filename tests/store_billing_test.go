@@ -24,6 +24,7 @@ func publishedRate(year int, cents int64) store.PublishedRate {
 }
 
 func TestPublishAndReadARate(t *testing.T) {
+	t.Parallel()
 	repo, ctx := billingRepo(t)
 	if err := repo.PublishRate(ctx, publishedRate(2025, 1842)); err != nil {
 		t.Fatal(err)
@@ -44,6 +45,7 @@ func TestPublishAndReadARate(t *testing.T) {
 }
 
 func TestPublishRefusesABadRate(t *testing.T) {
+	t.Parallel()
 	repo, ctx := billingRepo(t)
 	bad := publishedRate(2025, 1842)
 	bad.Formula = rental.Formula("wireless")
@@ -66,6 +68,7 @@ func TestPublishRefusesABadRate(t *testing.T) {
 }
 
 func TestPublishReplacesAnEarlierFiling(t *testing.T) {
+	t.Parallel()
 	repo, ctx := billingRepo(t)
 	if err := repo.PublishRate(ctx, publishedRate(2025, 1842)); err != nil {
 		t.Fatal(err)
@@ -89,6 +92,7 @@ func TestPublishReplacesAnEarlierFiling(t *testing.T) {
 }
 
 func TestPublishedYearsAreOrdered(t *testing.T) {
+	t.Parallel()
 	repo, ctx := billingRepo(t)
 	for _, y := range []int{2026, 2024, 2025} {
 		if err := repo.PublishRate(ctx, publishedRate(y, 1800)); err != nil {
@@ -114,6 +118,7 @@ func billRun(t *testing.T) []rental.Bill {
 }
 
 func TestSaveAndReadBills(t *testing.T) {
+	t.Parallel()
 	repo, ctx := billingRepo(t)
 	bills := billRun(t)
 	if err := repo.SaveBills(ctx, bills); err != nil {
@@ -146,6 +151,7 @@ func TestSaveAndReadBills(t *testing.T) {
 }
 
 func TestBillsForOneAttacher(t *testing.T) {
+	t.Parallel()
 	repo, ctx := billingRepo(t)
 	if err := repo.SaveBills(ctx, billRun(t)); err != nil {
 		t.Fatal(err)
@@ -166,6 +172,7 @@ func TestBillsForOneAttacher(t *testing.T) {
 }
 
 func TestSaveBillsRefusesABadRun(t *testing.T) {
+	t.Parallel()
 	repo, ctx := billingRepo(t)
 	bills := billRun(t)
 	bills[0].Number = ""
@@ -179,6 +186,7 @@ func TestSaveBillsRefusesABadRun(t *testing.T) {
 }
 
 func TestSaveBillsIsRepeatable(t *testing.T) {
+	t.Parallel()
 	repo, ctx := billingRepo(t)
 	bills := billRun(t)
 	if err := repo.SaveBills(ctx, bills); err != nil {

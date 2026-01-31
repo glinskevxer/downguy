@@ -28,6 +28,7 @@ func cliIn(stdin string, args ...string) run {
 }
 
 func TestVersionInfo(t *testing.T) {
+	t.Parallel()
 	info := version.Current()
 	if info.Name != "downguy" {
 		t.Errorf("name = %q", info.Name)
@@ -47,6 +48,7 @@ func TestVersionInfo(t *testing.T) {
 }
 
 func TestShortCommit(t *testing.T) {
+	t.Parallel()
 	cases := map[string]string{
 		"":    "",
 		"abc": "abc",
@@ -73,6 +75,7 @@ func TestShortCommit(t *testing.T) {
 }
 
 func TestNoArgumentsIsAUsageError(t *testing.T) {
+	t.Parallel()
 	got := cli()
 	if got.Code != cliapp.CodeUsage {
 		t.Errorf("code = %d", got.Code)
@@ -86,6 +89,7 @@ func TestNoArgumentsIsAUsageError(t *testing.T) {
 }
 
 func TestHelp(t *testing.T) {
+	t.Parallel()
 	for _, flag := range []string{"help", "-h", "--help"} {
 		got := cli(flag)
 		if got.Code != cliapp.CodeOK {
@@ -103,6 +107,7 @@ func TestHelp(t *testing.T) {
 }
 
 func TestHelpForOneCommand(t *testing.T) {
+	t.Parallel()
 	got := cli("help", "version")
 	if got.Code != cliapp.CodeOK {
 		t.Errorf("code = %d", got.Code)
@@ -120,6 +125,7 @@ func TestHelpForOneCommand(t *testing.T) {
 }
 
 func TestVersionFlagAndCommand(t *testing.T) {
+	t.Parallel()
 	for _, flag := range []string{"-v", "--version"} {
 		got := cli(flag)
 		if got.Code != cliapp.CodeOK || !strings.Contains(got.Stdout, "downguy") {
@@ -136,6 +142,7 @@ func TestVersionFlagAndCommand(t *testing.T) {
 }
 
 func TestAnUnknownCommand(t *testing.T) {
+	t.Parallel()
 	got := cli("frobnicate")
 	if got.Code != cliapp.CodeUsage {
 		t.Errorf("code = %d", got.Code)
@@ -146,6 +153,7 @@ func TestAnUnknownCommand(t *testing.T) {
 }
 
 func TestRegistryIsWellFormed(t *testing.T) {
+	t.Parallel()
 	names := cliapp.Names()
 	if len(names) == 0 {
 		t.Fatal("nothing is registered")
@@ -169,6 +177,7 @@ func TestRegistryIsWellFormed(t *testing.T) {
 }
 
 func TestEnvHelpers(t *testing.T) {
+	t.Parallel()
 	var out, errOut bytes.Buffer
 	env := &cliapp.Env{Stdout: &out, Stderr: &errOut}
 	env.Print("%d poles\n", 3)

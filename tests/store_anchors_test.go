@@ -32,6 +32,7 @@ func twoGuyAnchor() plant.Anchor {
 }
 
 func TestPutAndGetAnAnchorWithItsGuys(t *testing.T) {
+	t.Parallel()
 	repo, ctx := anchorRepo(t)
 	if err := repo.Put(ctx, twoGuyAnchor()); err != nil {
 		t.Fatal(err)
@@ -62,6 +63,7 @@ func TestPutAndGetAnAnchorWithItsGuys(t *testing.T) {
 }
 
 func TestPutRefusesAnInvalidAnchor(t *testing.T) {
+	t.Parallel()
 	repo, ctx := anchorRepo(t)
 	bad := sampleAnchor()
 	bad.Guys[0].Size = "baling wire"
@@ -80,6 +82,7 @@ func TestPutRefusesAnInvalidAnchor(t *testing.T) {
 }
 
 func TestPutReplacesTheGuysOutright(t *testing.T) {
+	t.Parallel()
 	repo, ctx := anchorRepo(t)
 	if err := repo.Put(ctx, twoGuyAnchor()); err != nil {
 		t.Fatal(err)
@@ -106,6 +109,7 @@ func TestPutReplacesTheGuysOutright(t *testing.T) {
 }
 
 func TestAnchorsAtAPole(t *testing.T) {
+	t.Parallel()
 	repo, ctx := anchorRepo(t)
 	first := sampleAnchor()
 	second := sampleAnchor()
@@ -137,6 +141,7 @@ func TestAnchorsAtAPole(t *testing.T) {
 }
 
 func TestDeleteAnAnchorTakesItsGuys(t *testing.T) {
+	t.Parallel()
 	repo, ctx := anchorRepo(t)
 	if err := repo.Put(ctx, twoGuyAnchor()); err != nil {
 		t.Fatal(err)
@@ -162,6 +167,7 @@ func TestDeleteAnAnchorTakesItsGuys(t *testing.T) {
 }
 
 func TestAnAnchorOnAPoleThatIsNotThereIsRefused(t *testing.T) {
+	t.Parallel()
 	repo, ctx := anchorRepo(t)
 	orphan := sampleAnchor()
 	orphan.Pole = "NW-999999"

@@ -10,6 +10,7 @@ import (
 )
 
 func TestInitCreatesAndThenSaysNothingToDo(t *testing.T) {
+	t.Parallel()
 	path := filepath.Join(t.TempDir(), "downguy.db")
 	got := cli("init", "-db", path)
 	if got.Code != cliapp.CodeOK {
@@ -43,6 +44,7 @@ func itoa(n int) string {
 }
 
 func TestInitRejectsBadUse(t *testing.T) {
+	t.Parallel()
 	path := filepath.Join(t.TempDir(), "downguy.db")
 	got := cli("init", "-db", path, "extra")
 	if got.Code != cliapp.CodeUsage {
@@ -58,6 +60,7 @@ func TestInitRejectsBadUse(t *testing.T) {
 }
 
 func TestInitRejectsABadConfiguration(t *testing.T) {
+	t.Parallel()
 	dir := t.TempDir()
 	path := filepath.Join(dir, "bad.yaml")
 	if err := writeFile(path, "district: tropical\n"); err != nil {
@@ -73,6 +76,7 @@ func TestInitRejectsABadConfiguration(t *testing.T) {
 }
 
 func TestConfigPrintsTheEffectiveSettings(t *testing.T) {
+	t.Parallel()
 	got := cli("config")
 	if got.Code != cliapp.CodeOK {
 		t.Fatalf("code = %d, stderr = %q", got.Code, got.Stderr)
@@ -85,6 +89,7 @@ func TestConfigPrintsTheEffectiveSettings(t *testing.T) {
 }
 
 func TestConfigTakesTheFlagOverTheFile(t *testing.T) {
+	t.Parallel()
 	dir := t.TempDir()
 	path := filepath.Join(dir, "downguy.yaml")
 	if err := writeFile(path, "database: from-the-file.db\ndistrict: light\n"); err != nil {
@@ -104,6 +109,7 @@ func TestConfigTakesTheFlagOverTheFile(t *testing.T) {
 }
 
 func TestConfigRejectsBadUse(t *testing.T) {
+	t.Parallel()
 	got := cli("config", "extra")
 	if got.Code != cliapp.CodeUsage {
 		t.Errorf("code = %d", got.Code)
@@ -115,6 +121,7 @@ func TestConfigRejectsBadUse(t *testing.T) {
 }
 
 func TestFlagsUsageListsTheOptions(t *testing.T) {
+	t.Parallel()
 	c, ok := cliapp.Lookup("init")
 	if !ok {
 		t.Fatal("init is not registered")

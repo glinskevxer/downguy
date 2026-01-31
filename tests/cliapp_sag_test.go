@@ -9,6 +9,7 @@ import (
 )
 
 func TestSagPrintsARun(t *testing.T) {
+	t.Parallel()
 	got := cli("sag", "2 ACSR SPARROW")
 	if got.Code != cliapp.CodeOK {
 		t.Fatalf("code = %d, stderr = %q", got.Code, got.Stderr)
@@ -21,6 +22,7 @@ func TestSagPrintsARun(t *testing.T) {
 }
 
 func TestSagTakesASpanAndARulingSpan(t *testing.T) {
+	t.Parallel()
 	short := cli("sag", "-span", "150", "2 ACSR SPARROW")
 	long := cli("sag", "-span", "320", "2 ACSR SPARROW")
 	if short.Code != cliapp.CodeOK || long.Code != cliapp.CodeOK {
@@ -39,6 +41,7 @@ func TestSagTakesASpanAndARulingSpan(t *testing.T) {
 }
 
 func TestSagOverTensionReportsFindings(t *testing.T) {
+	t.Parallel()
 	got := cli("sag", "-district", "light", "2 ACSR SPARROW")
 	if got.Code != cliapp.CodeFindings {
 		t.Fatalf("a line designed for the light district runs over under ice: %+v", got)
@@ -49,6 +52,7 @@ func TestSagOverTensionReportsFindings(t *testing.T) {
 }
 
 func TestSagAsJSON(t *testing.T) {
+	t.Parallel()
 	got := cli("sag", "-json", "-span", "225", "4/0 ACSR PENGUIN")
 	if got.Code != cliapp.CodeOK {
 		t.Fatalf("code = %d, stderr = %q", got.Code, got.Stderr)
@@ -81,6 +85,7 @@ func TestSagAsJSON(t *testing.T) {
 }
 
 func TestSagJSONFlagsOverTension(t *testing.T) {
+	t.Parallel()
 	got := cli("sag", "-json", "-district", "light", "2 ACSR SPARROW")
 	if got.Code != cliapp.CodeFindings {
 		t.Fatalf("code = %d", got.Code)
@@ -101,6 +106,7 @@ func TestSagJSONFlagsOverTension(t *testing.T) {
 }
 
 func TestSagRejectsBadUse(t *testing.T) {
+	t.Parallel()
 	cases := [][]string{
 		{"sag"},
 		{"sag", "a", "b"},
@@ -117,6 +123,7 @@ func TestSagRejectsBadUse(t *testing.T) {
 }
 
 func TestConductorsLists(t *testing.T) {
+	t.Parallel()
 	got := cli("conductors")
 	if got.Code != cliapp.CodeOK {
 		t.Fatalf("code = %d, stderr = %q", got.Code, got.Stderr)
@@ -129,6 +136,7 @@ func TestConductorsLists(t *testing.T) {
 }
 
 func TestConductorsAsJSON(t *testing.T) {
+	t.Parallel()
 	got := cli("conductors", "-json")
 	if got.Code != cliapp.CodeOK {
 		t.Fatalf("code = %d", got.Code)
@@ -152,6 +160,7 @@ func TestConductorsAsJSON(t *testing.T) {
 }
 
 func TestConductorsRejectsBadUse(t *testing.T) {
+	t.Parallel()
 	if got := cli("conductors", "extra"); got.Code != cliapp.CodeUsage {
 		t.Errorf("code = %d", got.Code)
 	}

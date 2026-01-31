@@ -10,6 +10,7 @@ import (
 )
 
 func TestLoadRunsTheGroundlineCheck(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	got := cli("load", "-db", path,
 		"-wire", "A1=2 ACSR SPARROW",
@@ -27,6 +28,7 @@ func TestLoadRunsTheGroundlineCheck(t *testing.T) {
 }
 
 func TestLoadWithADefaultWire(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	got := cli("load", "-db", path, "-default-wire", "2 ACSR SPARROW", "NW-441829")
 	if got.Code != cliapp.CodeOK {
@@ -38,6 +40,7 @@ func TestLoadWithADefaultWire(t *testing.T) {
 }
 
 func TestLoadAsJSON(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	got := cli("load", "-db", path, "-json", "-default-wire", "2 ACSR SPARROW", "NW-441829")
 	if got.Code != cliapp.CodeOK {
@@ -59,6 +62,7 @@ func TestLoadAsJSON(t *testing.T) {
 }
 
 func TestLoadOverridesTheDistrictAndGrade(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	base := cli("load", "-db", path, "-json", "-default-wire", "2 ACSR SPARROW", "NW-441829")
 	strict := cli("load", "-db", path, "-json", "-grade", "B", "-default-wire", "2 ACSR SPARROW", "NW-441829")
@@ -89,6 +93,7 @@ func TestLoadOverridesTheDistrictAndGrade(t *testing.T) {
 }
 
 func TestLoadReportsAnOverloadedPole(t *testing.T) {
+	t.Parallel()
 	path := tempDB(t)
 	poles := "pole_id,length_ft,class,species,owner,condition\nNW-441829,30,7,SPF,SUMMIT VALLEY ELECTRIC,restorable\nNW-441830,30,7,SPF,SUMMIT VALLEY ELECTRIC,sound\n"
 	if got := cliIn(poles, "import", "-db", path, "poles"); got.Code != cliapp.CodeOK {
@@ -115,6 +120,7 @@ func TestLoadReportsAnOverloadedPole(t *testing.T) {
 }
 
 func TestLoadRejectsBadUse(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	cases := [][]string{
 		{"load", "-db", path},
@@ -133,6 +139,7 @@ func TestLoadRejectsBadUse(t *testing.T) {
 }
 
 func TestLoadNeedsAConductorForEveryWire(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	got := cli("load", "-db", path, "NW-441829")
 	if got.Code != cliapp.CodeUsage {
@@ -144,6 +151,7 @@ func TestLoadNeedsAConductorForEveryWire(t *testing.T) {
 }
 
 func TestLoadOnAPoleWithNoSpans(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	got := cli("load", "-db", path, "-default-wire", "2 ACSR SPARROW", "SE-1129043")
 	if got.Code != cliapp.CodeFindings {
@@ -155,6 +163,7 @@ func TestLoadOnAPoleWithNoSpans(t *testing.T) {
 }
 
 func TestLoadOnAMissingPole(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	got := cli("load", "-db", path, "-default-wire", "2 ACSR SPARROW", "NW-999999")
 	if got.Code != cliapp.CodeFindings {

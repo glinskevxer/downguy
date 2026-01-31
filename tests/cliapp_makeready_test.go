@@ -39,6 +39,7 @@ func crowdedDB(t *testing.T) string {
 }
 
 func TestMakereadyPlansTheWork(t *testing.T) {
+	t.Parallel()
 	path := crowdedDB(t)
 	got := cli("makeready", "-db", path, "NW-441829")
 	if got.Code != cliapp.CodeFindings {
@@ -55,6 +56,7 @@ func TestMakereadyPlansTheWork(t *testing.T) {
 }
 
 func TestMakereadyLowersWhenThereIsRoomUnderneath(t *testing.T) {
+	t.Parallel()
 	path := tempDB(t)
 	atts := `attachment_id,pole_id,owner,kind,height,authorized,voltage
 A1,NW-441829,SUMMIT VALLEY ELECTRIC,primary,31.5,y,7620
@@ -85,6 +87,7 @@ SV-8003,NW-441829,2025-05-06,CREW 41,sound,A8,16.0,laser
 }
 
 func TestMakereadyAttributesToTheApplicant(t *testing.T) {
+	t.Parallel()
 	path := crowdedDB(t)
 	got := cli("makeready", "-db", path, "-json",
 		"-applicant", "MERIDIAN FIBER", "-application", "APP-1042", "NW-441829")
@@ -118,6 +121,7 @@ func TestMakereadyAttributesToTheApplicant(t *testing.T) {
 }
 
 func TestMakereadyOnACleanPole(t *testing.T) {
+	t.Parallel()
 	path := tempDB(t)
 	atts := `attachment_id,pole_id,owner,kind,height,authorized,voltage
 A1,NW-441829,SUMMIT VALLEY ELECTRIC,primary,31.5,y,7620
@@ -144,6 +148,7 @@ SV-8002,NW-441829,2025-05-06,CREW 41,sound,A3,20.0,laser
 }
 
 func TestMakereadyNeedsASurvey(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	got := cli("makeready", "-db", path, "NW-441830")
 	if got.Code != cliapp.CodeFindings {
@@ -155,6 +160,7 @@ func TestMakereadyNeedsASurvey(t *testing.T) {
 }
 
 func TestMakereadyRejectsBadUse(t *testing.T) {
+	t.Parallel()
 	path := crowdedDB(t)
 	cases := [][]string{
 		{"makeready", "-db", path},

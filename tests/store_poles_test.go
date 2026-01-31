@@ -25,6 +25,7 @@ func otherPole() plant.Pole {
 }
 
 func TestPutAndGetAPole(t *testing.T) {
+	t.Parallel()
 	repo, ctx := poleRepo(t)
 	if err := repo.Put(ctx, samplePole()); err != nil {
 		t.Fatal(err)
@@ -52,6 +53,7 @@ func TestPutAndGetAPole(t *testing.T) {
 }
 
 func TestGetAMissingPole(t *testing.T) {
+	t.Parallel()
 	repo, ctx := poleRepo(t)
 	_, err := repo.Get(ctx, "NW-000000")
 	if !errors.Is(err, store.ErrNotFound) {
@@ -64,6 +66,7 @@ func TestGetAMissingPole(t *testing.T) {
 }
 
 func TestPutRefusesAnInvalidPole(t *testing.T) {
+	t.Parallel()
 	repo, ctx := poleRepo(t)
 	bad := samplePole()
 	bad.Owner = ""
@@ -80,6 +83,7 @@ func TestPutRefusesAnInvalidPole(t *testing.T) {
 }
 
 func TestPutReplacesAnEarlierRecord(t *testing.T) {
+	t.Parallel()
 	repo, ctx := poleRepo(t)
 	if err := repo.Put(ctx, samplePole()); err != nil {
 		t.Fatal(err)
@@ -107,6 +111,7 @@ func TestPutReplacesAnEarlierRecord(t *testing.T) {
 }
 
 func TestDeleteAPole(t *testing.T) {
+	t.Parallel()
 	repo, ctx := poleRepo(t)
 	if err := repo.Put(ctx, samplePole()); err != nil {
 		t.Fatal(err)
@@ -125,6 +130,7 @@ func TestDeleteAPole(t *testing.T) {
 }
 
 func TestListPolesByDistrictAndOwner(t *testing.T) {
+	t.Parallel()
 	repo, ctx := poleRepo(t)
 	second := samplePole()
 	second.ID = "NW-441830"
@@ -171,6 +177,7 @@ func TestListPolesByDistrictAndOwner(t *testing.T) {
 }
 
 func TestDistrictIsDerivedOnTheWayIn(t *testing.T) {
+	t.Parallel()
 	repo, ctx := poleRepo(t)
 	if err := repo.Put(ctx, otherPole()); err != nil {
 		t.Fatal(err)

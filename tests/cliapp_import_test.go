@@ -18,6 +18,7 @@ func tempDB(t *testing.T) string {
 }
 
 func TestImportPolesFromStdin(t *testing.T) {
+	t.Parallel()
 	path := tempDB(t)
 	got := cliIn(poleCSV, "import", "-db", path, "poles")
 	if got.Code != cliapp.CodeOK {
@@ -29,6 +30,7 @@ func TestImportPolesFromStdin(t *testing.T) {
 }
 
 func TestImportFromAFile(t *testing.T) {
+	t.Parallel()
 	dir := t.TempDir()
 	path := filepath.Join(dir, "downguy.db")
 	if got := cli("init", "-db", path); got.Code != cliapp.CodeOK {
@@ -52,6 +54,7 @@ func TestImportFromAFile(t *testing.T) {
 }
 
 func TestImportTheWholeChain(t *testing.T) {
+	t.Parallel()
 	path := tempDB(t)
 	if got := cliIn(poleCSV, "import", "-db", path, "poles"); got.Code != cliapp.CodeOK {
 		t.Fatal(got.Stderr)
@@ -76,6 +79,7 @@ func TestImportTheWholeChain(t *testing.T) {
 }
 
 func TestImportReportsBadRows(t *testing.T) {
+	t.Parallel()
 	path := tempDB(t)
 	body := poleCSV + "nope,40,4,SPF,SUMMIT VALLEY ELECTRIC,sound,1998,,\n"
 	got := cliIn(body, "import", "-db", path, "poles")
@@ -91,6 +95,7 @@ func TestImportReportsBadRows(t *testing.T) {
 }
 
 func TestImportTruncatesALongProblemList(t *testing.T) {
+	t.Parallel()
 	path := tempDB(t)
 	var b strings.Builder
 	b.WriteString("pole_id,length_ft,class,species,owner\n")
@@ -112,6 +117,7 @@ func TestImportTruncatesALongProblemList(t *testing.T) {
 }
 
 func TestImportDryRunWritesNothing(t *testing.T) {
+	t.Parallel()
 	path := tempDB(t)
 	got := cliIn(poleCSV, "import", "-db", path, "-dry-run", "poles")
 	if got.Code != cliapp.CodeOK {
@@ -129,6 +135,7 @@ func TestImportDryRunWritesNothing(t *testing.T) {
 }
 
 func TestImportRejectsBadUse(t *testing.T) {
+	t.Parallel()
 	path := tempDB(t)
 	cases := [][]string{
 		{"import", "-db", path},
@@ -145,6 +152,7 @@ func TestImportRejectsBadUse(t *testing.T) {
 }
 
 func TestImportRejectsAFileMissingItsColumns(t *testing.T) {
+	t.Parallel()
 	path := tempDB(t)
 	got := cliIn("pole_id,owner\nNW-441829,X\n", "import", "-db", path, "poles")
 	if got.Code != cliapp.CodeUsage {

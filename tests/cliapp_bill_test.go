@@ -29,6 +29,7 @@ func billingDB(t *testing.T) string {
 }
 
 func TestBillRunsAYear(t *testing.T) {
+	t.Parallel()
 	path := billingDB(t)
 	got := cli("bill", "-db", path, "-issued", "2026-01-15", "2025")
 	if got.Code != cliapp.CodeOK {
@@ -45,6 +46,7 @@ func TestBillRunsAYear(t *testing.T) {
 }
 
 func TestBillAsJSONWithATelecomAttacher(t *testing.T) {
+	t.Parallel()
 	path := billingDB(t)
 	got := cli("bill", "-db", path, "-json", "-issued", "2026-01-15",
 		"-telecom", "northvale telephone", "2025")
@@ -80,6 +82,7 @@ func TestBillAsJSONWithATelecomAttacher(t *testing.T) {
 }
 
 func TestBillAsCSV(t *testing.T) {
+	t.Parallel()
 	path := billingDB(t)
 	got := cli("bill", "-db", path, "-csv", "-issued", "2026-01-15", "2025")
 	if got.Code != cliapp.CodeOK {
@@ -95,6 +98,7 @@ func TestBillAsCSV(t *testing.T) {
 }
 
 func TestBillCommitWritesTheRun(t *testing.T) {
+	t.Parallel()
 	path := billingDB(t)
 	if got := cli("bill", "-db", path, "-issued", "2026-01-15", "2025"); got.Code != cliapp.CodeOK {
 		t.Fatal(got.Stderr)
@@ -111,6 +115,7 @@ func TestBillCommitWritesTheRun(t *testing.T) {
 }
 
 func TestBillAnEarlierYearLeavesOutWhatWasNotUpYet(t *testing.T) {
+	t.Parallel()
 	path := billingDB(t)
 	got := cli("bill", "-db", path, "-json", "-issued", "2025-01-15", "2024")
 	if got.Code != cliapp.CodeOK {
@@ -131,6 +136,7 @@ func TestBillAnEarlierYearLeavesOutWhatWasNotUpYet(t *testing.T) {
 }
 
 func TestBillOnAYearWithNoFiling(t *testing.T) {
+	t.Parallel()
 	path := billingDB(t)
 	got := cli("bill", "-db", path, "-issued", "2026-01-15", "2019")
 	if got.Code != cliapp.CodeUsage {
@@ -139,6 +145,7 @@ func TestBillOnAYearWithNoFiling(t *testing.T) {
 }
 
 func TestBillRejectsBadUse(t *testing.T) {
+	t.Parallel()
 	path := billingDB(t)
 	cases := [][]string{
 		{"bill", "-db", path},
@@ -157,6 +164,7 @@ func TestBillRejectsBadUse(t *testing.T) {
 }
 
 func TestAuditFindsAnUnauthorizedAttachment(t *testing.T) {
+	t.Parallel()
 	path := billingDB(t)
 	got := cli("audit", "-db", path, "-found", "2026-05-01", "2025")
 	if got.Code != cliapp.CodeFindings {
@@ -170,6 +178,7 @@ func TestAuditFindsAnUnauthorizedAttachment(t *testing.T) {
 }
 
 func TestAuditAsJSONAndSelfReported(t *testing.T) {
+	t.Parallel()
 	path := billingDB(t)
 	audit := cli("audit", "-db", path, "-json", "-found", "2026-05-01", "2025")
 	if audit.Code != cliapp.CodeFindings {
@@ -201,6 +210,7 @@ func TestAuditAsJSONAndSelfReported(t *testing.T) {
 }
 
 func TestAuditOnACleanSystem(t *testing.T) {
+	t.Parallel()
 	path := tempDB(t)
 	clean := `attachment_id,pole_id,owner,kind,height,authorized,in_force_from
 A3,NW-441829,RIDGEPORT CABLEVISION,comm_cable,20.0,y,2019-04-01
@@ -220,6 +230,7 @@ A3,NW-441829,RIDGEPORT CABLEVISION,comm_cable,20.0,y,2019-04-01
 }
 
 func TestAuditRejectsBadUse(t *testing.T) {
+	t.Parallel()
 	path := billingDB(t)
 	cases := [][]string{
 		{"audit", "-db", path},

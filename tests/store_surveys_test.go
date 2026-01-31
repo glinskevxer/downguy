@@ -27,6 +27,7 @@ func surveyRepo(t *testing.T) (*store.Surveys, context.Context) {
 }
 
 func TestPutAndGetASurvey(t *testing.T) {
+	t.Parallel()
 	repo, ctx := surveyRepo(t)
 	sheet := sampleSheet()
 	sheet.Notes = "guy guard missing"
@@ -61,6 +62,7 @@ func TestPutAndGetASurvey(t *testing.T) {
 }
 
 func TestPutRefusesAnInvalidSurvey(t *testing.T) {
+	t.Parallel()
 	repo, ctx := surveyRepo(t)
 	bad := sampleSheet()
 	bad.Crew = ""
@@ -79,6 +81,7 @@ func TestPutRefusesAnInvalidSurvey(t *testing.T) {
 }
 
 func TestPutRewritesTheReadings(t *testing.T) {
+	t.Parallel()
 	repo, ctx := surveyRepo(t)
 	if err := repo.Put(ctx, sampleSheet()); err != nil {
 		t.Fatal(err)
@@ -98,6 +101,7 @@ func TestPutRewritesTheReadings(t *testing.T) {
 }
 
 func TestLatestSurveyOfAPole(t *testing.T) {
+	t.Parallel()
 	repo, ctx := surveyRepo(t)
 	older := sampleSheet()
 	older.ID = "SV-2100"
@@ -124,6 +128,7 @@ func TestLatestSurveyOfAPole(t *testing.T) {
 }
 
 func TestSurveysOnAPoleComeBackNewestFirst(t *testing.T) {
+	t.Parallel()
 	repo, ctx := surveyRepo(t)
 	older := sampleSheet()
 	older.ID = "SV-2100"
@@ -151,6 +156,7 @@ func TestSurveysOnAPoleComeBackNewestFirst(t *testing.T) {
 }
 
 func TestStaleSurveys(t *testing.T) {
+	t.Parallel()
 	repo, ctx := surveyRepo(t)
 	old := sampleSheet()
 	old.ID = "SV-2100"
@@ -184,6 +190,7 @@ func TestStaleSurveys(t *testing.T) {
 }
 
 func TestGetAMissingSurvey(t *testing.T) {
+	t.Parallel()
 	repo, ctx := surveyRepo(t)
 	if _, err := repo.Get(ctx, "SV-0"); !errors.Is(err, store.ErrNotFound) {
 		t.Errorf("error = %v", err)

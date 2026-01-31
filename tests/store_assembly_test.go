@@ -15,6 +15,7 @@ func plantStore(t *testing.T) (*store.Plant, context.Context) {
 }
 
 func TestSaveAndLoadAnAssembly(t *testing.T) {
+	t.Parallel()
 	p, ctx := plantStore(t)
 	a := sampleAssembly()
 	a.Anchors = []plant.Anchor{sampleAnchor()}
@@ -44,6 +45,7 @@ func TestSaveAndLoadAnAssembly(t *testing.T) {
 }
 
 func TestSaveAssemblyRefusesAnInvalidOne(t *testing.T) {
+	t.Parallel()
 	p, ctx := plantStore(t)
 	if err := p.SaveAssembly(ctx, nil); err == nil {
 		t.Error("no assembly should be rejected")
@@ -60,6 +62,7 @@ func TestSaveAssemblyRefusesAnInvalidOne(t *testing.T) {
 }
 
 func TestLoadAMissingAssembly(t *testing.T) {
+	t.Parallel()
 	p, ctx := plantStore(t)
 	if _, err := p.Assembly(ctx, "NW-000000"); !errors.Is(err, store.ErrNotFound) {
 		t.Errorf("error = %v", err)
@@ -67,6 +70,7 @@ func TestLoadAMissingAssembly(t *testing.T) {
 }
 
 func TestRepositoryAccessors(t *testing.T) {
+	t.Parallel()
 	p, _ := plantStore(t)
 	if p.Poles() == nil || p.Attachments() == nil || p.Spans() == nil || p.Anchors() == nil {
 		t.Error("every repository should be reachable")
@@ -94,6 +98,7 @@ func loadRun(t *testing.T, p *store.Plant, ctx context.Context) {
 }
 
 func TestLineWalksTheSectionFromEitherEnd(t *testing.T) {
+	t.Parallel()
 	p, ctx := plantStore(t)
 	loadRun(t, p, ctx)
 	fromEnd, err := p.Line(ctx, "LN-7", "NW-441829")
@@ -123,6 +128,7 @@ func TestLineWalksTheSectionFromEitherEnd(t *testing.T) {
 }
 
 func TestLineFlipsASpanRecordedTheOtherWayRound(t *testing.T) {
+	t.Parallel()
 	p, ctx := plantStore(t)
 	loadRun(t, p, ctx)
 	line, err := p.Line(ctx, "LN-7", "NW-441829")
@@ -137,6 +143,7 @@ func TestLineFlipsASpanRecordedTheOtherWayRound(t *testing.T) {
 }
 
 func TestLineStopsAtATap(t *testing.T) {
+	t.Parallel()
 	p, ctx := plantStore(t)
 	loadRun(t, p, ctx)
 	tap := samplePole()
@@ -160,6 +167,7 @@ func TestLineStopsAtATap(t *testing.T) {
 }
 
 func TestLineRejectsAPoleWithNoSpans(t *testing.T) {
+	t.Parallel()
 	p, ctx := plantStore(t)
 	loadRun(t, p, ctx)
 	lonely := samplePole()

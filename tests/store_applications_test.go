@@ -17,6 +17,7 @@ func applicationRepo(t *testing.T) (*store.Applications, context.Context) {
 }
 
 func TestPutAndGetAnApplication(t *testing.T) {
+	t.Parallel()
 	repo, ctx := applicationRepo(t)
 	app := newApplication(t)
 	walk(t, app, [][2]string{
@@ -55,6 +56,7 @@ func TestPutAndGetAnApplication(t *testing.T) {
 }
 
 func TestPutRefusesABadApplication(t *testing.T) {
+	t.Parallel()
 	repo, ctx := applicationRepo(t)
 	if err := repo.Put(ctx, nil); err == nil {
 		t.Error("no application should be rejected")
@@ -72,6 +74,7 @@ func TestPutRefusesABadApplication(t *testing.T) {
 }
 
 func TestPutRewritesRatherThanAppends(t *testing.T) {
+	t.Parallel()
 	repo, ctx := applicationRepo(t)
 	app := newApplication(t)
 	if err := repo.Put(ctx, app); err != nil {
@@ -95,6 +98,7 @@ func TestPutRewritesRatherThanAppends(t *testing.T) {
 }
 
 func TestGetAMissingApplication(t *testing.T) {
+	t.Parallel()
 	repo, ctx := applicationRepo(t)
 	if _, err := repo.Get(ctx, "APP-0"); !errors.Is(err, store.ErrNotFound) {
 		t.Errorf("error = %v", err)
@@ -126,6 +130,7 @@ func fileApplications(t *testing.T, repo *store.Applications, ctx context.Contex
 }
 
 func TestListApplications(t *testing.T) {
+	t.Parallel()
 	repo, ctx := applicationRepo(t)
 	fileApplications(t, repo, ctx)
 
@@ -163,6 +168,7 @@ func TestListApplications(t *testing.T) {
 }
 
 func TestApplicationsTouchingAPole(t *testing.T) {
+	t.Parallel()
 	repo, ctx := applicationRepo(t)
 	fileApplications(t, repo, ctx)
 	got, err := repo.TouchingPole(ctx, "NW-441829")

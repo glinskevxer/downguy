@@ -25,6 +25,7 @@ func loadedDB(t *testing.T) string {
 }
 
 func TestPolePrintsAnAssembly(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	got := cli("pole", "-db", path, "NW-441829")
 	if got.Code != cliapp.CodeOK {
@@ -41,6 +42,7 @@ func TestPolePrintsAnAssembly(t *testing.T) {
 }
 
 func TestPoleWithSpans(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	got := cli("pole", "-db", path, "-spans", "NW-441829")
 	if got.Code != cliapp.CodeOK {
@@ -52,6 +54,7 @@ func TestPoleWithSpans(t *testing.T) {
 }
 
 func TestPoleAsJSON(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	got := cli("pole", "-db", path, "-json", "-spans", "NW-441829")
 	if got.Code != cliapp.CodeOK {
@@ -79,6 +82,7 @@ func TestPoleAsJSON(t *testing.T) {
 }
 
 func TestPoleOnABarePole(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	got := cli("pole", "-db", path, "SE-1129043")
 	if got.Code != cliapp.CodeOK {
@@ -93,6 +97,7 @@ func TestPoleOnABarePole(t *testing.T) {
 }
 
 func TestPoleOnAMissingPole(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	got := cli("pole", "-db", path, "NW-999999")
 	if got.Code != cliapp.CodeFindings {
@@ -104,6 +109,7 @@ func TestPoleOnAMissingPole(t *testing.T) {
 }
 
 func TestPoleRejectsBadUse(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	cases := [][]string{
 		{"pole", "-db", path},

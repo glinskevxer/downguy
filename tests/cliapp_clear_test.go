@@ -25,6 +25,7 @@ func surveyedDB(t *testing.T) string {
 }
 
 func TestClearRunsAgainstTheSurvey(t *testing.T) {
+	t.Parallel()
 	path := surveyedDB(t)
 	got := cli("clear", "-db", path, "NW-441829")
 	if got.Code != cliapp.CodeOK && got.Code != cliapp.CodeFindings {
@@ -36,6 +37,7 @@ func TestClearRunsAgainstTheSurvey(t *testing.T) {
 }
 
 func TestClearFindsASafetyZoneViolation(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	// Lift the cable to two feet under the primary.
 	body := `survey_id,pole_id,taken,crew,condition,subject,height,method
@@ -55,6 +57,7 @@ SV-9002,NW-441829,2025-05-06,CREW 41,sound,A3,29.5,laser
 }
 
 func TestClearAsJSON(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	body := `survey_id,pole_id,taken,crew,condition,subject,height,method
 SV-9003,NW-441829,2025-05-06,CREW 41,sound,A1,31.5,laser
@@ -80,6 +83,7 @@ SV-9003,NW-441829,2025-05-06,CREW 41,sound,A3,29.5,laser
 }
 
 func TestClearRefusesAStaleSurvey(t *testing.T) {
+	t.Parallel()
 	path := surveyedDB(t)
 	got := cli("clear", "-db", path, "-as-of", "2026-06-01", "NW-441829")
 	if got.Code != cliapp.CodeFindings {
@@ -99,6 +103,7 @@ func TestClearRefusesAStaleSurvey(t *testing.T) {
 }
 
 func TestClearNeedsASurvey(t *testing.T) {
+	t.Parallel()
 	path := loadedDB(t)
 	got := cli("clear", "-db", path, "NW-441829")
 	if got.Code != cliapp.CodeFindings {
@@ -110,6 +115,7 @@ func TestClearNeedsASurvey(t *testing.T) {
 }
 
 func TestClearRejectsBadUse(t *testing.T) {
+	t.Parallel()
 	path := surveyedDB(t)
 	cases := [][]string{
 		{"clear", "-db", path},
@@ -131,6 +137,7 @@ func TestClearRejectsBadUse(t *testing.T) {
 }
 
 func TestRulesLists(t *testing.T) {
+	t.Parallel()
 	got := cli("rules")
 	if got.Code != cliapp.CodeOK {
 		t.Fatalf("code = %d", got.Code)
@@ -143,6 +150,7 @@ func TestRulesLists(t *testing.T) {
 }
 
 func TestRulesBySection(t *testing.T) {
+	t.Parallel()
 	got := cli("rules", "-section", "235")
 	if got.Code != cliapp.CodeOK {
 		t.Fatalf("code = %d", got.Code)
@@ -159,6 +167,7 @@ func TestRulesBySection(t *testing.T) {
 }
 
 func TestRulesAsJSON(t *testing.T) {
+	t.Parallel()
 	got := cli("rules", "-json")
 	if got.Code != cliapp.CodeOK {
 		t.Fatalf("code = %d", got.Code)
@@ -183,6 +192,7 @@ func TestRulesAsJSON(t *testing.T) {
 }
 
 func TestRulesRejectsBadUse(t *testing.T) {
+	t.Parallel()
 	if got := cli("rules", "extra"); got.Code != cliapp.CodeUsage {
 		t.Errorf("code = %d", got.Code)
 	}

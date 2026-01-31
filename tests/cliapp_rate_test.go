@@ -9,6 +9,7 @@ import (
 )
 
 func TestRatePrintsBothFormulas(t *testing.T) {
+	t.Parallel()
 	got := cli("rate", "2025")
 	if got.Code != cliapp.CodeOK {
 		t.Fatalf("code = %d, stderr = %q", got.Code, got.Stderr)
@@ -24,6 +25,7 @@ func TestRatePrintsBothFormulas(t *testing.T) {
 }
 
 func TestRateForOneFormula(t *testing.T) {
+	t.Parallel()
 	got := cli("rate", "-formula", "telecom", "2025")
 	if got.Code != cliapp.CodeOK {
 		t.Fatalf("code = %d, stderr = %q", got.Code, got.Stderr)
@@ -34,6 +36,7 @@ func TestRateForOneFormula(t *testing.T) {
 }
 
 func TestRateExplainsItsWorking(t *testing.T) {
+	t.Parallel()
 	got := cli("rate", "-formula", "cable", "-explain", "2025")
 	if got.Code != cliapp.CodeOK {
 		t.Fatalf("code = %d", got.Code)
@@ -46,6 +49,7 @@ func TestRateExplainsItsWorking(t *testing.T) {
 }
 
 func TestRateAsJSON(t *testing.T) {
+	t.Parallel()
 	got := cli("rate", "-json", "-attachers", "3", "2026")
 	if got.Code != cliapp.CodeOK {
 		t.Fatalf("code = %d, stderr = %q", got.Code, got.Stderr)
@@ -74,6 +78,7 @@ func TestRateAsJSON(t *testing.T) {
 }
 
 func TestRateJSONCarriesTheWorkingWhenAsked(t *testing.T) {
+	t.Parallel()
 	got := cli("rate", "-json", "-explain", "-formula", "telecom", "2025")
 	if got.Code != cliapp.CodeOK {
 		t.Fatal(got.Stderr)
@@ -88,6 +93,7 @@ func TestRateJSONCarriesTheWorkingWhenAsked(t *testing.T) {
 }
 
 func TestTheAttacherCountMovesTheTelecomRate(t *testing.T) {
+	t.Parallel()
 	few := cli("rate", "-json", "-formula", "telecom", "-attachers", "2", "2025")
 	many := cli("rate", "-json", "-formula", "telecom", "-attachers", "8", "2025")
 	if few.Code != cliapp.CodeOK || many.Code != cliapp.CodeOK {
@@ -106,6 +112,7 @@ func TestTheAttacherCountMovesTheTelecomRate(t *testing.T) {
 }
 
 func TestRateRejectsBadUse(t *testing.T) {
+	t.Parallel()
 	cases := [][]string{
 		{"rate"},
 		{"rate", "2025", "2026"},

@@ -27,6 +27,7 @@ func loadedStore(t *testing.T) (*store.Poles, *store.Attachments, context.Contex
 }
 
 func TestPutAndGetAnAttachment(t *testing.T) {
+	t.Parallel()
 	_, repo, ctx := loadedStore(t)
 	want := sampleAttachment()
 	want.Face = plant.FaceStreet
@@ -56,6 +57,7 @@ func TestPutAndGetAnAttachment(t *testing.T) {
 }
 
 func TestAnAttachmentWithBothEndsOfItsRange(t *testing.T) {
+	t.Parallel()
 	_, repo, ctx := loadedStore(t)
 	att := sampleAttachment()
 	att.InForce.To = calendar.MustNew(2024, 12, 31)
@@ -75,6 +77,7 @@ func TestAnAttachmentWithBothEndsOfItsRange(t *testing.T) {
 }
 
 func TestPutRefusesAnInvalidAttachment(t *testing.T) {
+	t.Parallel()
 	_, repo, ctx := loadedStore(t)
 	bad := sampleAttachment()
 	bad.Kind = plant.Kind("clothesline")
@@ -94,6 +97,7 @@ func TestPutRefusesAnInvalidAttachment(t *testing.T) {
 }
 
 func TestPutAllIsOneTransaction(t *testing.T) {
+	t.Parallel()
 	_, repo, ctx := loadedStore(t)
 	batch := []plant.Attachment{
 		att("A1", "SUMMIT VALLEY ELECTRIC", plant.KindPrimary, 335),
@@ -125,6 +129,7 @@ func TestPutAllIsOneTransaction(t *testing.T) {
 }
 
 func TestOnPoleComesBackHighestFirst(t *testing.T) {
+	t.Parallel()
 	_, repo, ctx := loadedStore(t)
 	if err := repo.PutAll(ctx, []plant.Attachment{
 		att("A3", "RIDGEPORT CABLEVISION", plant.KindCommCable, 200),
@@ -146,6 +151,7 @@ func TestOnPoleComesBackHighestFirst(t *testing.T) {
 }
 
 func TestOwnedByAndUnauthorized(t *testing.T) {
+	t.Parallel()
 	_, repo, ctx := loadedStore(t)
 	orphan := att("A9", "UNIDENTIFIED", plant.KindCommCable, 174)
 	orphan.Authorized = false
@@ -177,6 +183,7 @@ func TestOwnedByAndUnauthorized(t *testing.T) {
 }
 
 func TestGetAndDeleteAMissingAttachment(t *testing.T) {
+	t.Parallel()
 	_, repo, ctx := loadedStore(t)
 	if _, err := repo.Get(ctx, "A0"); !errors.Is(err, store.ErrNotFound) {
 		t.Errorf("error = %v, want ErrNotFound", err)

@@ -42,6 +42,7 @@ func loadSpans(t *testing.T, repo *store.Spans, ctx context.Context) {
 }
 
 func TestPutAndGetASpan(t *testing.T) {
+	t.Parallel()
 	repo, ctx := spanRepo(t)
 	loadSpans(t, repo, ctx)
 	got, err := repo.Get(ctx, "SP-1")
@@ -66,6 +67,7 @@ func TestPutAndGetASpan(t *testing.T) {
 }
 
 func TestPutRefusesAnInvalidSpan(t *testing.T) {
+	t.Parallel()
 	repo, ctx := spanRepo(t)
 	bad := span("SP-9", "NW-441829", "NW-441830", 4)
 	if err := repo.Put(ctx, bad); err == nil {
@@ -78,6 +80,7 @@ func TestPutRefusesAnInvalidSpan(t *testing.T) {
 }
 
 func TestSpansAtAPole(t *testing.T) {
+	t.Parallel()
 	repo, ctx := spanRepo(t)
 	loadSpans(t, repo, ctx)
 	interior, err := repo.AtPole(ctx, "NW-441830")
@@ -100,6 +103,7 @@ func TestSpansAtAPole(t *testing.T) {
 }
 
 func TestSpanBetweenIgnoresDirection(t *testing.T) {
+	t.Parallel()
 	repo, ctx := spanRepo(t)
 	loadSpans(t, repo, ctx)
 	forward, err := repo.Between(ctx, "NW-441830", "NW-441831")
@@ -119,6 +123,7 @@ func TestSpanBetweenIgnoresDirection(t *testing.T) {
 }
 
 func TestSpansOverACoverAndByLength(t *testing.T) {
+	t.Parallel()
 	repo, ctx := spanRepo(t)
 	loadSpans(t, repo, ctx)
 	roads, err := repo.OverCover(ctx, plant.CoverRoad)
@@ -144,6 +149,7 @@ func TestSpansOverACoverAndByLength(t *testing.T) {
 }
 
 func TestDeleteASpan(t *testing.T) {
+	t.Parallel()
 	repo, ctx := spanRepo(t)
 	loadSpans(t, repo, ctx)
 	removed, err := repo.Delete(ctx, "SP-2")
@@ -161,6 +167,7 @@ func TestDeleteASpan(t *testing.T) {
 }
 
 func TestPutReplacesASpan(t *testing.T) {
+	t.Parallel()
 	repo, ctx := spanRepo(t)
 	loadSpans(t, repo, ctx)
 	resurveyed := span("SP-1", "NW-441829", "NW-441830", 212)

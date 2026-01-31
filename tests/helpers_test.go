@@ -48,3 +48,20 @@ func atoiPart(iso string, field int) int {
 func writeFile(path, body string) error {
 	return os.WriteFile(path, []byte(body), 0o600)
 }
+
+// The command line and store suites stand up a sqlite database each, and
+// modernc's driver takes a few hundred milliseconds to open one. Run serially
+// that was a minute and a quarter of wall clock for a suite whose actual work
+// is milliseconds, so every test in those two suites calls t.Parallel and the
+// whole run comes back in single figures of seconds.
+//
+// Nothing in them shares state: each takes its own t.TempDir, the command
+// registry is written once at init and only read afterwards, and every command
+// takes its streams as arguments rather than reaching for the process's.
+const parallelSuiteNote = "cliapp and store tests run in parallel"
+
+func TestParallelSuiteNoteIsNotEmpty(t *testing.T) {
+	if parallelSuiteNote == "" {
+		t.Fatal("the note explaining the parallel suites went missing")
+	}
+}
