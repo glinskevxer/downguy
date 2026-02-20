@@ -1,0 +1,140 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  GO_VERSION: "1.23.5"
+
+jobs:
+  checks:
+    name: format, vet and tidy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - name: gofmt
+        run: make fmt-check
+      - name: go vet
+        run: make vet
+      - name: go mod tidy
+        run: make tidy-check
+
+  test:
+    name: tests on go ${{ matrix.go }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ["1.22.10", "1.23.5"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: true
+      - name: build
+        run: make build
+      - name: test
+        run: make test
+
+  cover:
+    name: coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - name: coverage floor
+        run: make cover-check
+      - name: keep the profile
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.out
+          retention-days: 7
+
+  ordering:
+    name: race and shuffle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - name: race detector
+        run: make race
+      - name: shuffled order
+        run: make shuffle
+
+  smoke:
+    name: end to end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - name: run one whole application through the binary
+        run: make smoke
+
+  image:
+    name: container image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: build the image
+        run: |
+          docker build \
+            --build-arg RELEASE=ci \
+            --build-arg COMMIT="${GITHUB_SHA}" \
+            --build-arg BUILT_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            -t downguy:ci .
+      - name: the binary in the image runs
+        run: |
+          docker run --rm downguy:ci version
+          docker run --rm downguy:ci rate 2025
+      - name: the service comes up and answers
+        run: |
+          docker run -d --name downguy-ci -p 8471:8471 downguy:ci serve
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8471/readyz > /dev/null; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              echo "the service never came ready" >&2
+              docker logs downguy-ci
+              exit 1
+            fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8471/healthz
+          curl -fsS http://127.0.0.1:8471/rates/2025
+          docker rm -f downguy-ci
+
+  advisories:
+    name: dependency advisories
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - name: install the vulnerability scanner
+        run: go install golang.org/x/vuln/cmd/govulncheck@v1.1.3
+      - name: scan
+        run: govulncheck ./...
