@@ -54,7 +54,7 @@ test:
 
 .PHONY: race
 race:
-	$(GO) test -race -count=1 ./tests/...
+	@./scripts/race.sh
 
 .PHONY: shuffle
 shuffle:

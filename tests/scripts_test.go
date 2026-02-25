@@ -133,3 +133,71 @@ func TestCoverFloorScriptReadsARealProfile(t *testing.T) {
 		t.Errorf("one test should not clear a ninety nine percent floor:\n%s", out)
 	}
 }
+
+func TestTheModuleBuildsOnTheOldestToolchainCIUses(t *testing.T) {
+	t.Parallel()
+	body, err := os.ReadFile(filepath.Join(repoRoot(t), "go.mod"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var directive string
+	for _, line := range strings.Split(string(body), "\n") {
+		if strings.HasPrefix(line, "go ") {
+			directive = strings.TrimSpace(strings.TrimPrefix(line, "go "))
+			break
+		}
+	}
+	if directive == "" {
+		t.Fatal("go.mod has no go directive")
+	}
+	// The workflow builds on an older toolchain as well as the pinned one, and
+	// a go directive above that toolchain makes the older job refuse the
+	// module outright rather than fail a test.
+	w := loadWorkflow(t)
+	oldest := ""
+	for _, v := range w.Jobs["test"].Strategy.Matrix["go"] {
+		if oldest == "" || v < oldest {
+			oldest = v
+		}
+	}
+	if oldest == "" {
+		t.Fatal("the test job has no toolchain matrix")
+	}
+	if !strings.HasPrefix(oldest, directive[:4]) && directive > oldest {
+		t.Errorf("go.mod asks for go %s and the workflow builds on %s", directive, oldest)
+	}
+	if strings.HasPrefix(directive, "1.23") {
+		t.Errorf("go.mod asks for %s, which the %s job cannot build", directive, oldest)
+	}
+}
+
+func TestTheRaceScriptSaysWhichItDid(t *testing.T) {
+	t.Parallel()
+	body, err := os.ReadFile(filepath.Join(repoRoot(t), "scripts", "race.sh"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(body)
+	for _, want := range []string{"RACE_REQUIRED", "race: skipped", "CGO_ENABLED=1", "go test -race"} {
+		if !strings.Contains(text, want) {
+			t.Errorf("race.sh does not mention %q", want)
+		}
+	}
+	w := loadWorkflow(t)
+	found := false
+	for _, step := range w.Jobs["ordering"].Steps {
+		if strings.Contains(step.Run, "make race") {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("the ordering job does not run the race target")
+	}
+	workflowBody, err := os.ReadFile(filepath.Join(repoRoot(t), ".github", "workflows", "ci.yml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(workflowBody), "RACE_REQUIRED") {
+		t.Error("the workflow does not insist the detector actually runs")
+	}
+}

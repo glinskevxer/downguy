@@ -35,7 +35,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: ["1.22.10", "1.23.5"]
+        go: ["1.22.12", "1.23.5"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -76,6 +76,10 @@ jobs:
           cache: true
       - name: race detector
         run: make race
+        env:
+          # The agent has a C compiler, so a skipped detector here would be a
+          # silent hole rather than a portability allowance.
+          RACE_REQUIRED: "1"
       - name: shuffled order
         run: make shuffle
 
