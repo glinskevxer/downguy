@@ -74,6 +74,10 @@ cover-html: cover
 	$(GO) tool cover -html=$(COVER_PROFILE) -o coverage.html
 	@echo wrote coverage.html
 
+.PHONY: advisories
+advisories:
+	@./scripts/advisories.sh
+
 .PHONY: tidy-check
 tidy-check:
 	@./scripts/tidy-check.sh

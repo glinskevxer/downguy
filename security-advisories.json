@@ -1,0 +1,18 @@
+{
+  "policy": "Anything govulncheck reaches outside the standard library fails the build. Standard library findings are accepted only under a written acceptance below, and every acceptance carries a date after which the build fails again.",
+  "acceptances": [
+    {
+      "scope": "stdlib",
+      "reason": "The toolchain is pinned to go1.23.5 so that a build in 2027 produces the same binary as a build today. Every standard library advisory govulncheck reports against this program is fixed in a later 1.23 patch, and taking those patches means moving the pin. That is a deliberate trade and it is written down here rather than left to whoever next reads a red pipeline.",
+      "assessed": "2026-02-25",
+      "assessed_by": "glinskevxer",
+      "review_by": "2027-02-26",
+      "checked": [
+        "The program opens no network listeners it does not own: the only server is the read side service, bound by default to the loopback address.",
+        "It parses no untrusted archive, image or certificate. Its inputs are csv exports and its own json.",
+        "It runs no template over caller supplied data and executes no subprocess.",
+        "The database is sqlite through a pure Go driver, so nothing here links a C library."
+      ]
+    }
+  ]
+}
