@@ -201,3 +201,58 @@ func TestTheRaceScriptSaysWhichItDid(t *testing.T) {
 		t.Error("the workflow does not insist the detector actually runs")
 	}
 }
+
+func TestTheReadmeDocumentsEveryCommand(t *testing.T) {
+	t.Parallel()
+	body, err := os.ReadFile(filepath.Join(repoRoot(t), "README.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(body)
+	documented := map[string]bool{}
+	for _, line := range strings.Split(text, "\n") {
+		if !strings.HasPrefix(line, "| `") {
+			continue
+		}
+		fields := strings.Split(line, "|")
+		if len(fields) < 3 {
+			continue
+		}
+		name := strings.Trim(strings.TrimSpace(fields[1]), "`")
+		documented[name] = true
+	}
+	for _, name := range cliCommandNames() {
+		if !documented[name] {
+			t.Errorf("the readme does not document the %s command", name)
+		}
+	}
+	for _, want := range []string{"Exit codes", "internal/clearance", "make check", "security-advisories.json"} {
+		if !strings.Contains(text, want) {
+			t.Errorf("the readme does not cover %q", want)
+		}
+	}
+}
+
+func TestTheCommandReferenceScriptIsWiredIn(t *testing.T) {
+	t.Parallel()
+	makefile, err := os.ReadFile(filepath.Join(repoRoot(t), "Makefile"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(makefile), "command-reference.sh") {
+		t.Error("the makefile never runs the command reference check")
+	}
+	if !strings.Contains(string(makefile), "check: fmt-check vet build test cover-check command-reference") {
+		t.Error("the check target does not include the command reference")
+	}
+	w := loadWorkflow(t)
+	found := false
+	for _, step := range w.Jobs["checks"].Steps {
+		if strings.Contains(step.Run, "make command-reference") {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("the checks job never runs the command reference")
+	}
+}

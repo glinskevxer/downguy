@@ -28,6 +28,8 @@ jobs:
         run: make vet
       - name: go mod tidy
         run: make tidy-check
+      - name: the readme documents every command
+        run: make command-reference
 
   test:
     name: tests on go ${{ matrix.go }}

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/glinskevxer/downguy/internal/cliapp"
 	"github.com/glinskevxer/downguy/internal/plant"
 	"github.com/glinskevxer/downguy/internal/sagten"
 )
@@ -65,3 +66,7 @@ func TestParallelSuiteNoteIsNotEmpty(t *testing.T) {
 		t.Fatal("the note explaining the parallel suites went missing")
 	}
 }
+
+// cliCommandNames is the registered command list, wrapped so the script tests
+// can reach it without importing the command line package themselves.
+func cliCommandNames() []string { return cliapp.Names() }

@@ -22,7 +22,7 @@ LDFLAGS := -s -w \
 all: check
 
 .PHONY: check
-check: fmt-check vet build test cover-check
+check: fmt-check vet build test cover-check command-reference
 
 .PHONY: build
 build:
@@ -73,6 +73,10 @@ cover-check: cover
 cover-html: cover
 	$(GO) tool cover -html=$(COVER_PROFILE) -o coverage.html
 	@echo wrote coverage.html
+
+.PHONY: command-reference
+command-reference: build
+	@./scripts/command-reference.sh $(BIN)
 
 .PHONY: advisories
 advisories:
