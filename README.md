@@ -58,6 +58,7 @@ this wrong.
 | command | what it does |
 | --- | --- |
 | `allocate` | decide who pays for the make ready and raise the invoices |
+| `application` | open an application, move it on, and show where it has got to |
 | `audit` | find unauthorized attachments and work out what they owe |
 | `bill` | run the annual rental billing for a rate year |
 | `clear` | run the clearance rules against a surveyed pole |
