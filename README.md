@@ -63,6 +63,7 @@ this wrong.
 | `bill` | run the annual rental billing for a rate year |
 | `clear` | run the clearance rules against a surveyed pole |
 | `conductors` | list the catalogued conductors |
+| `compliance` | say where the time went on an application and whose delay it was |
 | `config` | print the settings a run would use |
 | `costbook` | print the unit cost book as it stood on a day |
 | `estimate` | price a make ready plan against the unit cost book |
