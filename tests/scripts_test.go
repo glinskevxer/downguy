@@ -256,3 +256,34 @@ func TestTheCommandReferenceScriptIsWiredIn(t *testing.T) {
 		t.Error("the checks job never runs the command reference")
 	}
 }
+
+func TestEveryParserWithAFuzzTargetIsInTheScript(t *testing.T) {
+	t.Parallel()
+	body, err := os.ReadFile(filepath.Join(repoRoot(t), "scripts", "fuzz.sh"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(body), "grep -ho '^func Fuzz") {
+		t.Error("the fuzz script should discover its targets rather than list them, or a new one is silently skipped")
+	}
+	if !strings.Contains(string(body), "-fuzztime") {
+		t.Error("the fuzz script never bounds a run")
+	}
+	makefile, err := os.ReadFile(filepath.Join(repoRoot(t), "Makefile"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(makefile), "fuzz.sh") {
+		t.Error("the makefile has no fuzz target")
+	}
+	w := loadWorkflow(t)
+	found := false
+	for _, step := range w.Jobs["ordering"].Steps {
+		if strings.Contains(step.Run, "make fuzz") {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("the workflow never fuzzes")
+	}
+}

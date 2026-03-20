@@ -9,6 +9,7 @@ BIN := bin/downguy
 PKGS := ./...
 COVER_PROFILE := coverage.out
 COVER_FLOOR := 88
+FUZZ_SECONDS ?= 10
 
 RELEASE ?= dev
 COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null)
@@ -60,14 +61,26 @@ race:
 shuffle:
 	$(GO) test -count=1 -shuffle=on ./tests/...
 
+.PHONY: fuzz
+fuzz:
+	@./scripts/fuzz.sh $(FUZZ_SECONDS)
+
 .PHONY: cover
 cover:
 	$(GO) test ./tests/... -coverpkg=./internal/...,./cmd/... -coverprofile=$(COVER_PROFILE)
 	$(GO) tool cover -func=$(COVER_PROFILE) | tail -1
 
+.PHONY: fuzz
+fuzz:
+	@./scripts/fuzz.sh $(FUZZ_SECONDS)
+
 .PHONY: cover-check
 cover-check: cover
 	@./scripts/cover-floor.sh $(COVER_PROFILE) $(COVER_FLOOR)
+
+.PHONY: fuzz
+fuzz:
+	@./scripts/fuzz.sh $(FUZZ_SECONDS)
 
 .PHONY: cover-html
 cover-html: cover

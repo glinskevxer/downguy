@@ -84,6 +84,8 @@ jobs:
           RACE_REQUIRED: "1"
       - name: shuffled order
         run: make shuffle
+      - name: fuzz the parsers
+        run: make fuzz FUZZ_SECONDS=20
 
   smoke:
     name: end to end
