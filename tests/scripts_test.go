@@ -287,3 +287,23 @@ func TestEveryParserWithAFuzzTargetIsInTheScript(t *testing.T) {
 		t.Error("the workflow never fuzzes")
 	}
 }
+
+func TestTheMakefileHasABenchmarkTarget(t *testing.T) {
+	t.Parallel()
+	body, err := os.ReadFile(filepath.Join(repoRoot(t), "Makefile"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(body)
+	if !strings.Contains(text, "\nbench:") {
+		t.Fatal("the makefile has no bench target")
+	}
+	// The benchmark run has to exclude the ordinary tests, or a suite that
+	// stands up twenty sqlite databases dominates the numbers.
+	if !strings.Contains(text, "-run '^$$'") {
+		t.Error("the bench target does not exclude the tests")
+	}
+	if !strings.Contains(text, "-benchmem") {
+		t.Error("the bench target does not report allocations, which is half of what a benchmark is for")
+	}
+}

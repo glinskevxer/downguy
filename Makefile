@@ -61,6 +61,10 @@ race:
 shuffle:
 	$(GO) test -count=1 -shuffle=on ./tests/...
 
+.PHONY: bench
+bench:
+	$(GO) test ./tests/ -run '^$$' -bench . -benchmem
+
 .PHONY: fuzz
 fuzz:
 	@./scripts/fuzz.sh $(FUZZ_SECONDS)
@@ -70,6 +74,10 @@ cover:
 	$(GO) test ./tests/... -coverpkg=./internal/...,./cmd/... -coverprofile=$(COVER_PROFILE)
 	$(GO) tool cover -func=$(COVER_PROFILE) | tail -1
 
+.PHONY: bench
+bench:
+	$(GO) test ./tests/ -run '^$$' -bench . -benchmem
+
 .PHONY: fuzz
 fuzz:
 	@./scripts/fuzz.sh $(FUZZ_SECONDS)
@@ -77,6 +85,10 @@ fuzz:
 .PHONY: cover-check
 cover-check: cover
 	@./scripts/cover-floor.sh $(COVER_PROFILE) $(COVER_FLOOR)
+
+.PHONY: bench
+bench:
+	$(GO) test ./tests/ -run '^$$' -bench . -benchmem
 
 .PHONY: fuzz
 fuzz:
