@@ -5,7 +5,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/glinskevxer/downguy/internal/nesc"
 	"github.com/glinskevxer/downguy/internal/report"
 	"github.com/glinskevxer/downguy/internal/sagten"
 )
@@ -38,8 +37,7 @@ func newSagFlags(out io.Writer) *Flags {
 	f := NewFlags("sag", out).WithJSON()
 	f.Set().Int("span", 225, "the span to sag over, in feet")
 	f.Set().Int("ruling-span", 0, "the ruling span of the section, defaulting to the span")
-	f.Set().String("district", "", "the loading district, overriding the configuration")
-	return f
+	return f.WithEngineering()
 }
 
 // SagRowJSON is one line of a sag table on the wire.
@@ -75,20 +73,11 @@ func runSag(env *Env) int {
 	if err != nil {
 		return env.Fail(CodeUsage, "%v", err)
 	}
-	cfg, err := f.Config(env)
+	engineering, err := f.Engineering(env)
 	if err != nil {
 		return env.Fail(CodeUsage, "%v", err)
 	}
-	district, err := cfg.LoadingDistrict()
-	if err != nil {
-		return env.Fail(CodeUsage, "%v", err)
-	}
-	if override := f.Set().Lookup("district").Value.String(); override != "" {
-		district, err = nesc.ParseDistrict(override)
-		if err != nil {
-			return env.Fail(CodeUsage, "%v", err)
-		}
-	}
+	district := engineering.District
 
 	span := flagInt(f, "span", 225)
 	ruling := flagInt(f, "ruling-span", 0)

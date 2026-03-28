@@ -35,11 +35,9 @@ func makereadyUsage() string {
 }
 
 func newMakereadyFlags(out io.Writer) *Flags {
-	f := NewFlags("makeready", out).WithJSON()
+	f := newEngineeringFlags("makeready", out)
 	f.Set().String("applicant", "", "the attacher applying")
 	f.Set().String("application", "", "the application id to label the plan with")
-	f.Set().String("grade", "", "the grade of construction, overriding the configuration")
-	f.Set().String("district", "", "the loading district, overriding the configuration")
 	return f
 }
 
@@ -56,30 +54,12 @@ func runMakeready(env *Env) int {
 	if err != nil {
 		return env.Fail(CodeUsage, "%v", err)
 	}
-	cfg, err := f.Config(env)
+	engineering, err := f.Engineering(env)
 	if err != nil {
 		return env.Fail(CodeUsage, "%v", err)
 	}
-	district, err := cfg.LoadingDistrict()
-	if err != nil {
-		return env.Fail(CodeUsage, "%v", err)
-	}
-	if override := f.Set().Lookup("district").Value.String(); override != "" {
-		if district, err = nesc.ParseDistrict(override); err != nil {
-			return env.Fail(CodeUsage, "%v", err)
-		}
-	}
-	grade, err := cfg.ConstructionGrade()
-	if err != nil {
-		return env.Fail(CodeUsage, "%v", err)
-	}
-	if override := f.Set().Lookup("grade").Value.String(); override != "" {
-		if grade, err = nesc.ParseGrade(override); err != nil {
-			return env.Fail(CodeUsage, "%v", err)
-		}
-	}
-	applicant := f.Set().Lookup("applicant").Value.String()
-	application := f.Set().Lookup("application").Value.String()
+	applicant := stringFlag(f, "applicant")
+	application := stringFlag(f, "application")
 	if application == "" {
 		application = "APP-" + string(id)
 	}
@@ -113,7 +93,8 @@ func runMakeready(env *Env) int {
 
 	engine := clearance.New()
 	after, err := engine.CheckPole(clearance.PoleContext{
-		Applied: applied, District: district, Grade: grade, Applicant: applicant,
+		Applied: applied, District: engineering.District, Grade: engineering.Grade,
+		Applicant: applicant,
 	})
 	if err != nil {
 		return env.Fail(CodeUsage, "%v", err)
@@ -121,7 +102,7 @@ func runMakeready(env *Env) int {
 
 	findings := after
 	if applicant != "" {
-		before, err := withoutApplicant(engine, applied, district, grade, applicant)
+		before, err := withoutApplicant(engine, applied, engineering.District, engineering.Grade, applicant)
 		if err != nil {
 			return env.Fail(CodeUsage, "%v", err)
 		}

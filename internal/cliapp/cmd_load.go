@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/glinskevxer/downguy/internal/loading"
-	"github.com/glinskevxer/downguy/internal/nesc"
 	"github.com/glinskevxer/downguy/internal/plant"
 	"github.com/glinskevxer/downguy/internal/report"
 	"github.com/glinskevxer/downguy/internal/store"
@@ -35,11 +34,9 @@ func loadUsage() string {
 }
 
 func newLoadFlags(out io.Writer) *Flags {
-	f := NewFlags("load", out).WithJSON()
+	f := newEngineeringFlags("load", out)
 	f.Set().Var(&assignmentFlag{}, "wire", "assign a conductor, as attachment=code")
 	f.Set().String("default-wire", "", "the conductor to assume for anything not assigned")
-	f.Set().String("grade", "", "the grade of construction, overriding the configuration")
-	f.Set().String("district", "", "the loading district, overriding the configuration")
 	f.Set().String("line", "", "the line section id to report against")
 	return f
 }
@@ -82,27 +79,9 @@ func runLoad(env *Env) int {
 	if err != nil {
 		return env.Fail(CodeUsage, "%v", err)
 	}
-	cfg, err := f.Config(env)
+	engineering, err := f.Engineering(env)
 	if err != nil {
 		return env.Fail(CodeUsage, "%v", err)
-	}
-	district, err := cfg.LoadingDistrict()
-	if err != nil {
-		return env.Fail(CodeUsage, "%v", err)
-	}
-	if override := f.Set().Lookup("district").Value.String(); override != "" {
-		if district, err = nesc.ParseDistrict(override); err != nil {
-			return env.Fail(CodeUsage, "%v", err)
-		}
-	}
-	grade, err := cfg.ConstructionGrade()
-	if err != nil {
-		return env.Fail(CodeUsage, "%v", err)
-	}
-	if override := f.Set().Lookup("grade").Value.String(); override != "" {
-		if grade, err = nesc.ParseGrade(override); err != nil {
-			return env.Fail(CodeUsage, "%v", err)
-		}
 	}
 
 	ctx := context.Background()
@@ -131,7 +110,7 @@ func runLoad(env *Env) int {
 	}
 
 	assignment := assignmentsFor(f, assembly)
-	analysis, err := loading.AnalyseAssembly(assembly, line, assignment, district, grade)
+	analysis, err := loading.AnalyseAssembly(assembly, line, assignment, engineering.District, engineering.Grade)
 	if err != nil {
 		return env.Fail(CodeUsage, "%v", err)
 	}

@@ -40,10 +40,8 @@ func clearUsage() string {
 }
 
 func newClearFlags(out io.Writer) *Flags {
-	f := NewFlags("clear", out).WithJSON()
+	f := newEngineeringFlags("clear", out)
 	f.Set().String("applicant", "", "the attacher applying, so its own facilities can be told apart")
-	f.Set().String("grade", "", "the grade of construction, overriding the configuration")
-	f.Set().String("district", "", "the loading district, overriding the configuration")
 	f.Set().Bool("allow-stale", false, "run against a survey that is past its shelf life")
 	f.Set().String("as-of", "", "the date to judge staleness against, defaulting to the survey date")
 	return f
@@ -62,27 +60,9 @@ func runClear(env *Env) int {
 	if err != nil {
 		return env.Fail(CodeUsage, "%v", err)
 	}
-	cfg, err := f.Config(env)
+	engineering, err := f.Engineering(env)
 	if err != nil {
 		return env.Fail(CodeUsage, "%v", err)
-	}
-	district, err := cfg.LoadingDistrict()
-	if err != nil {
-		return env.Fail(CodeUsage, "%v", err)
-	}
-	if override := f.Set().Lookup("district").Value.String(); override != "" {
-		if district, err = nesc.ParseDistrict(override); err != nil {
-			return env.Fail(CodeUsage, "%v", err)
-		}
-	}
-	grade, err := cfg.ConstructionGrade()
-	if err != nil {
-		return env.Fail(CodeUsage, "%v", err)
-	}
-	if override := f.Set().Lookup("grade").Value.String(); override != "" {
-		if grade, err = nesc.ParseGrade(override); err != nil {
-			return env.Fail(CodeUsage, "%v", err)
-		}
 	}
 	asOf, err := dateFlag(f, "as-of")
 	if err != nil {
@@ -123,8 +103,8 @@ func runClear(env *Env) int {
 		return env.Fail(CodeInternal, "%v", err)
 	}
 	findings, err := clearance.New().CheckPole(clearance.PoleContext{
-		Applied: applied, District: district, Grade: grade,
-		Applicant: f.Set().Lookup("applicant").Value.String(),
+		Applied: applied, District: engineering.District, Grade: engineering.Grade,
+		Applicant: stringFlag(f, "applicant"),
 	})
 	if err != nil {
 		return env.Fail(CodeUsage, "%v", err)
