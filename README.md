@@ -78,6 +78,7 @@ this wrong.
 | `rules` | list the code rules this system checks |
 | `sag` | work out a sag and tension run for a conductor |
 | `serve` | run the read side http service |
+| `sweep` | run the clearance rules across every surveyed pole |
 | `version` | print the build information |
 
 `downguy help <command>` prints the options each one takes. The table above is
