@@ -70,6 +70,7 @@ this wrong.
 | `export` | write plant back out as csv |
 | `import` | load a plant or survey export into the database |
 | `init` | create or migrate the database |
+| `inspect` | list the poles a groundline inspection programme should visit next |
 | `load` | run the groundline loading check on a pole |
 | `makeready` | plan the work a pole needs before an attachment can go up |
 | `pole` | show a pole and everything on it |
