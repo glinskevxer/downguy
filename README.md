@@ -72,6 +72,7 @@ this wrong.
 | `init` | create or migrate the database |
 | `inspect` | list the poles a groundline inspection programme should visit next |
 | `load` | run the groundline loading check on a pole |
+| `maintain` | count what is on file, check it hangs together, and compact it |
 | `makeready` | plan the work a pole needs before an attachment can go up |
 | `pole` | show a pole and everything on it |
 | `policies` | list the cost allocation policies |
