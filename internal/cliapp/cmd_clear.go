@@ -2,15 +2,12 @@ package cliapp
 
 import (
 	"context"
-	"errors"
 	"io"
 
 	"github.com/glinskevxer/downguy/internal/clearance"
 	"github.com/glinskevxer/downguy/internal/nesc"
 	"github.com/glinskevxer/downguy/internal/plant"
 	"github.com/glinskevxer/downguy/internal/report"
-	"github.com/glinskevxer/downguy/internal/store"
-	"github.com/glinskevxer/downguy/internal/survey"
 )
 
 func init() {
@@ -76,32 +73,17 @@ func runClear(env *Env) int {
 	}
 	defer func() { _ = db.Close() }()
 
-	loader := store.NewPlant(db)
-	assembly, err := loader.Assembly(ctx, id)
-	if errors.Is(err, store.ErrNotFound) {
+	applied, err := loadSurveyed(ctx, db, id)
+	if notFound(err) {
 		return env.Fail(CodeFindings, "%v", err)
 	}
 	if err != nil {
 		return env.Fail(CodeInternal, "%v", err)
 	}
-
-	sheet, err := store.NewSurveys(db).Latest(ctx, id)
-	if errors.Is(err, store.ErrNotFound) {
-		return env.Fail(CodeFindings, "%v", err)
-	}
-	if err != nil {
-		return env.Fail(CodeInternal, "%v", err)
-	}
-	if !asOf.IsZero() && sheet.Stale(asOf) && !flagBool(f, "allow-stale") {
-		return env.Fail(CodeFindings,
-			"the survey of %s is %d days old, past the %d day shelf life; pass -allow-stale to use it anyway",
-			id, sheet.Age(asOf), survey.StaleAfterDays)
+	if !asOf.IsZero() && applied.Sheet.Stale(asOf) && !flagBool(f, "allow-stale") {
+		return env.Fail(CodeFindings, "%v", staleErr(id, applied.Sheet.Age(asOf)))
 	}
 
-	applied, err := survey.Apply(sheet, assembly)
-	if err != nil {
-		return env.Fail(CodeInternal, "%v", err)
-	}
 	findings, err := clearance.New().CheckPole(clearance.PoleContext{
 		Applied: applied, District: engineering.District, Grade: engineering.Grade,
 		Applicant: stringFlag(f, "applicant"),

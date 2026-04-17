@@ -25,53 +25,45 @@ func (c Counts) Total() int {
 		c.Applications + c.Surveys + c.Bills
 }
 
+// tallyTable pairs a table with where its count goes.
+type tallyTable struct {
+	name string
+	into func(*Counts) *int
+}
+
+// tallyTables is the list Tally walks. Adding a table to the schema and
+// forgetting it here is caught by the test that asserts the tally covers every
+// table the migrations create.
+var tallyTables = []tallyTable{
+	{"poles", func(c *Counts) *int { return &c.Poles }},
+	{"attachments", func(c *Counts) *int { return &c.Attachments }},
+	{"spans", func(c *Counts) *int { return &c.Spans }},
+	{"anchors", func(c *Counts) *int { return &c.Anchors }},
+	{"guys", func(c *Counts) *int { return &c.Guys }},
+	{"applications", func(c *Counts) *int { return &c.Applications }},
+	{"pole_surveys", func(c *Counts) *int { return &c.Surveys }},
+	{"rental_bills", func(c *Counts) *int { return &c.Bills }},
+}
+
+// TalliedTables returns the tables the tally counts, sorted.
+func TalliedTables() []string {
+	out := make([]string, 0, len(tallyTables))
+	for _, t := range tallyTables {
+		out = append(out, t.name)
+	}
+	sort.Strings(out)
+	return out
+}
+
 // Tally counts every table.
 func Tally(ctx context.Context, db *sql.DB) (Counts, error) {
 	if db == nil {
 		return Counts{}, fmt.Errorf("%w: no database", ErrMigration)
 	}
-	targets := []struct {
-		table string
-		into  *int
-	}{}
 	var c Counts
-	targets = append(targets,
-		struct {
-			table string
-			into  *int
-		}{"poles", &c.Poles},
-		struct {
-			table string
-			into  *int
-		}{"attachments", &c.Attachments},
-		struct {
-			table string
-			into  *int
-		}{"spans", &c.Spans},
-		struct {
-			table string
-			into  *int
-		}{"anchors", &c.Anchors},
-		struct {
-			table string
-			into  *int
-		}{"guys", &c.Guys},
-		struct {
-			table string
-			into  *int
-		}{"applications", &c.Applications},
-		struct {
-			table string
-			into  *int
-		}{"pole_surveys", &c.Surveys},
-		struct {
-			table string
-			into  *int
-		}{"rental_bills", &c.Bills},
-	)
-	for _, t := range targets {
-		if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM `+t.table).Scan(t.into); err != nil {
-			return Counts{}, fmt.Errorf("store: counting %s: %w", t.table, err)
+	for _, t := range tallyTables {
+		if err := db.QueryRowContext(ctx, `SELECT COUNT(*) FROM `+t.name).Scan(t.into(&c)); err != nil {
+			return Counts{}, fmt.Errorf("store: counting %s: %w", t.name, err)
 		}
 	}
 	return c, nil

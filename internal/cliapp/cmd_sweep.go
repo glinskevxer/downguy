@@ -11,7 +11,6 @@ import (
 	"github.com/glinskevxer/downguy/internal/plant"
 	"github.com/glinskevxer/downguy/internal/report"
 	"github.com/glinskevxer/downguy/internal/store"
-	"github.com/glinskevxer/downguy/internal/survey"
 )
 
 func init() {
@@ -115,11 +114,7 @@ func runSweep(env *Env) int {
 			})
 			continue
 		}
-		assembly, err := loader.Assembly(ctx, pole.ID)
-		if err != nil {
-			return env.Fail(CodeInternal, "%v", err)
-		}
-		applied, err := survey.Apply(sheet, assembly)
+		applied, err := loadSurveyed(ctx, db, pole.ID)
 		if err != nil {
 			out.Skipped = append(out.Skipped, SkipJSON{Pole: string(pole.ID), Reason: err.Error()})
 			continue

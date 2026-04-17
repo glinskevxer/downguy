@@ -2,7 +2,6 @@ package cliapp
 
 import (
 	"context"
-	"errors"
 	"io"
 
 	"github.com/glinskevxer/downguy/internal/clearance"
@@ -10,7 +9,6 @@ import (
 	"github.com/glinskevxer/downguy/internal/nesc"
 	"github.com/glinskevxer/downguy/internal/plant"
 	"github.com/glinskevxer/downguy/internal/report"
-	"github.com/glinskevxer/downguy/internal/store"
 	"github.com/glinskevxer/downguy/internal/survey"
 )
 
@@ -71,22 +69,10 @@ func runMakeready(env *Env) int {
 	}
 	defer func() { _ = db.Close() }()
 
-	loader := store.NewPlant(db)
-	assembly, err := loader.Assembly(ctx, id)
-	if errors.Is(err, store.ErrNotFound) {
+	applied, err := loadSurveyed(ctx, db, id)
+	if notFound(err) {
 		return env.Fail(CodeFindings, "%v", err)
 	}
-	if err != nil {
-		return env.Fail(CodeInternal, "%v", err)
-	}
-	sheet, err := store.NewSurveys(db).Latest(ctx, id)
-	if errors.Is(err, store.ErrNotFound) {
-		return env.Fail(CodeFindings, "%v", err)
-	}
-	if err != nil {
-		return env.Fail(CodeInternal, "%v", err)
-	}
-	applied, err := survey.Apply(sheet, assembly)
 	if err != nil {
 		return env.Fail(CodeInternal, "%v", err)
 	}

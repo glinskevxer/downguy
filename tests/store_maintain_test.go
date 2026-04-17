@@ -190,3 +190,42 @@ func TestMaintainRejectsBadUse(t *testing.T) {
 		}
 	}
 }
+
+func TestTheTallyCoversEveryTableTheMigrationsCreate(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	db := openStore(t)
+	tables, err := store.Tables(ctx, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	counted := map[string]bool{}
+	for _, name := range store.TalliedTables() {
+		counted[name] = true
+	}
+	// The child tables and the migration ledger are deliberately not separate
+	// counts on the summary, so they are named here rather than left to be
+	// noticed as a gap.
+	notCounted := map[string]bool{
+		"schema_migrations": true,
+		"application_poles": true, "application_events": true,
+		"survey_measurements": true, "rate_years": true,
+	}
+	for _, name := range tables {
+		if counted[name] || notCounted[name] {
+			continue
+		}
+		t.Errorf("the schema creates %s and nothing counts it", name)
+	}
+	for _, name := range store.TalliedTables() {
+		found := false
+		for _, real := range tables {
+			if real == name {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("the tally counts %s, which the schema does not create", name)
+		}
+	}
+}
