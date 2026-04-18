@@ -67,7 +67,7 @@ func runServe(env *Env) int {
 	if err != nil {
 		return env.Fail(CodeInternal, "%v", err)
 	}
-	service.RegisterPlant().RegisterRates()
+	service.AllRoutes()
 
 	if flagBool(f, "check") {
 		env.Print("%s would listen on %s\n", cfg.Utility, cfg.HTTP.Address)
