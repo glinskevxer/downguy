@@ -132,5 +132,13 @@ func Governing(a, b Grade) Grade {
 	return a
 }
 
+// KnownGradeForCheck reports whether a grade is one a check can be carried out
+// at. It is Rank without the position, which is what nearly every caller
+// actually wants.
+func KnownGradeForCheck(g Grade) bool {
+	_, ok := g.Rank()
+	return ok
+}
+
 // String returns the grade letter.
 func (g Grade) String() string { return string(g) }

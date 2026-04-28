@@ -108,6 +108,11 @@ var catalogue = map[string]Rule{
 		Title:   "clearance of a vertical run from other facilities",
 		Applies: "a riser or a vertical run on the pole face",
 	},
+	"NESC-242": {
+		ID: "NESC-242", Section: "242", Severity: SeverityStop,
+		Title:   "grade of construction required by what the line crosses",
+		Applies: "a span carrying supply, or crossing a railroad",
+	},
 	"NESC-250B": {
 		ID: "NESC-250B", Section: "250", Severity: SeverityStop,
 		Title:   "structure strength under the district loading case",
