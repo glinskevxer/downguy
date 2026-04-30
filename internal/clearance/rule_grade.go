@@ -24,8 +24,10 @@ type GradeRule struct {
 	Grade nesc.Grade
 }
 
-// ID returns the catalogue rule id.
-func (GradeRule) ID() string { return "NESC-242C1" }
+// ID returns the catalogue rule id. It is the section rather than the
+// paragraph, because that is what the finding cites and a rule whose id is not
+// the one its findings carry cannot be looked up from a report.
+func (GradeRule) ID() string { return "NESC-242" }
 
 // Check compares the grade the run used against what the span demands.
 func (r GradeRule) Check(c SpanContext) Findings {
@@ -57,31 +59,19 @@ func (r GradeRule) Check(c SpanContext) Findings {
 		return nil
 	}
 
-	required, ruleID := nesc.RequiredGrade(crossesRail, hasComm, hasSupply)
+	required, paragraph := nesc.RequiredGrade(crossesRail, hasComm, hasSupply)
 	if !required.Stricter(r.Grade) {
 		return nil
 	}
-	rule := nesc.MustRule(gradeRuleFor(ruleID))
+	rule := nesc.MustRule(GradeRule{}.ID())
 	return Findings{{
 		RuleID: rule.ID, Severity: rule.Severity,
 		Pole: string(c.Sheet.FromPole), Span: c.Sheet.ID,
 		Subject: c.Sheet.ID, Against: reasonFor(crossesRail, hasComm),
 		Blame: BlameUnattributed,
-		Detail: fmt.Sprintf("the span %s and needs grade %s, and this check was run at grade %s",
-			reasonFor(crossesRail, hasComm), required, r.Grade),
+		Detail: fmt.Sprintf("the span %s and needs grade %s under %s, and this check was run at grade %s",
+			reasonFor(crossesRail, hasComm), required, paragraph, r.Grade),
 	}}
-}
-
-// gradeRuleFor maps the citation the grade table returns onto the catalogue.
-// The table cites the paragraph; the catalogue carries one entry for the
-// section, because a finding that cites a paragraph nobody can look up is
-// worse than one that cites the section.
-func gradeRuleFor(cite string) string {
-	switch cite {
-	case "NESC-242C1", "NESC-242C2", "NESC-242D", "NESC-242B", "NESC-242A":
-		return "NESC-242"
-	}
-	return "NESC-242"
 }
 
 func reasonFor(crossesRail, hasComm bool) string {
