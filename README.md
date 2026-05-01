@@ -74,6 +74,7 @@ this wrong.
 | `load` | run the groundline loading check on a pole |
 | `maintain` | count what is on file, check it hangs together, and compact it |
 | `makeready` | plan the work a pole needs before an attachment can go up |
+| `packet` | split a make ready plan into the sheets each crew is handed |
 | `pole` | show a pole and everything on it |
 | `policies` | list the cost allocation policies |
 | `rate` | work out the annual attachment rate for a year |

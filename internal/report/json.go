@@ -61,6 +61,21 @@ type WorkItemJSON struct {
 	Detail  string   `json:"detail,omitempty"`
 }
 
+// WorkItemToJSON turns one work item into its wire shape. It is exported
+// because a plan and a crew packet describe the same item, and two renderings
+// of one item is how a consumer ends up parsing two shapes.
+func WorkItemToJSON(item makeready.Item) WorkItemJSON {
+	out := WorkItemJSON{
+		ID: item.ID, Action: string(item.Action), Pole: item.Pole, Span: item.Span,
+		Subject: item.Subject, Owner: item.Owner, Because: item.Because, Detail: item.Detail,
+	}
+	if item.FromHeight != 0 || item.ToHeight != 0 {
+		out.From = decimal(item.FromHeight)
+		out.To = decimal(item.ToHeight)
+	}
+	return out
+}
+
 // PlanJSON is a make ready plan on the wire.
 type PlanJSON struct {
 	Application string         `json:"application"`
@@ -75,15 +90,7 @@ func PlanToJSON(plan *makeready.Plan) PlanJSON {
 	}
 	out := PlanJSON{Application: plan.Application, Items: make([]WorkItemJSON, 0, len(plan.Items))}
 	for _, item := range plan.Items {
-		wire := WorkItemJSON{
-			ID: item.ID, Action: string(item.Action), Pole: item.Pole, Span: item.Span,
-			Subject: item.Subject, Owner: item.Owner, Because: item.Because, Detail: item.Detail,
-		}
-		if item.FromHeight != 0 || item.ToHeight != 0 {
-			wire.From = decimal(item.FromHeight)
-			wire.To = decimal(item.ToHeight)
-		}
-		out.Items = append(out.Items, wire)
+		out.Items = append(out.Items, WorkItemToJSON(item))
 	}
 	out.Unresolved = FindingsJSON(plan.Unresolved)
 	if len(out.Unresolved) == 0 {
