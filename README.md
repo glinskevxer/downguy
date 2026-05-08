@@ -61,6 +61,7 @@ this wrong.
 | `application` | open an application, move it on, and show where it has got to |
 | `audit` | find unauthorized attachments and work out what they owe |
 | `bill` | run the annual rental billing for a rate year |
+| `chase` | list the clocks about to run out and who to chase about them |
 | `clear` | run the clearance rules against a surveyed pole |
 | `conductors` | list the catalogued conductors |
 | `compliance` | say where the time went on an application and whose delay it was |
