@@ -61,6 +61,11 @@ race:
 shuffle:
 	$(GO) test -count=1 -shuffle=on ./tests/...
 
+.PHONY: golden
+golden:
+	$(GO) test ./tests/ -run Golden -update-golden -count=1
+	@echo "golden files rewritten, read the diff before committing it"
+
 .PHONY: bench
 bench:
 	$(GO) test ./tests/ -run '^$$' -bench . -benchmem
@@ -74,6 +79,11 @@ cover:
 	$(GO) test ./tests/... -coverpkg=./internal/...,./cmd/... -coverprofile=$(COVER_PROFILE)
 	$(GO) tool cover -func=$(COVER_PROFILE) | tail -1
 
+.PHONY: golden
+golden:
+	$(GO) test ./tests/ -run Golden -update-golden -count=1
+	@echo "golden files rewritten, read the diff before committing it"
+
 .PHONY: bench
 bench:
 	$(GO) test ./tests/ -run '^$$' -bench . -benchmem
@@ -85,6 +95,11 @@ fuzz:
 .PHONY: cover-check
 cover-check: cover
 	@./scripts/cover-floor.sh $(COVER_PROFILE) $(COVER_FLOOR)
+
+.PHONY: golden
+golden:
+	$(GO) test ./tests/ -run Golden -update-golden -count=1
+	@echo "golden files rewritten, read the diff before committing it"
 
 .PHONY: bench
 bench:

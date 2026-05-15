@@ -1,0 +1,9 @@
+NW-441829 grade C in the heavy district: 46% ok
+source     kind       moment ft lb  factored ft lb
+---------  ---------  ------------  --------------
+A1         wire wind          4014            8831
+A2         wire wind          3415            7513
+A3         wire wind          2108            4638
+NW-441829  pole wind          1491            3281
+           total                             24264
+           capacity                          53452

@@ -1,0 +1,15 @@
+2 ACSR SPARROW designed for the heavy district over 225 ft, ruling span 225 ft
+
+condition        temp F  load lb/ft  tension lb  sag ft  note
+---------------  ------  ----------  ----------  ------  ----
+bare at 0 F           0      0.2906         619    2.97
+bare at 15 F         15      0.2906         549    3.35
+bare at 30 F         30      0.2906         497    3.70
+bare at 60 F         60      0.2906         422    4.36
+bare at 90 F         90      0.2906         371    4.95
+bare at 120 F       120      0.2906         335    5.49
+heavy district        0      1.3848        1956    4.48
+medium district      15      0.8487        1287    4.17
+light district       30      0.5626         868    4.10
+
+deepest sag 5.49 ft at bare at 120 F

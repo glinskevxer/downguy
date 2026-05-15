@@ -1,0 +1,22 @@
+year  formula  attachers  space factor  pole cost  annual  monthly
+----  -------  ---------  ------------  ---------  ------  -------
+2025  cable            5         9.80%     $62.12   $6.09    $0.50
+2025  telecom          5        12.37%     $62.12   $7.68    $0.64
+
+CABLE FORMULA
+------------------------------------------------------------------------------------------------
+  rate year 2025 under the cable formula
+  presumed pole 37.5 ft, usable 10.2 ft, unusable 27.3 ft
+  occupied 1.0 ft across 5 attaching entities
+  space factor 9.80%
+  annual cost of a bare pole $62.12
+  annual rate $6.09
+
+TELECOM FORMULA
+------------------------------------------------------------------------------------------------
+  rate year 2025 under the telecom formula
+  presumed pole 37.5 ft, usable 10.2 ft, unusable 27.3 ft
+  occupied 1.0 ft across 5 attaching entities
+  space factor 12.37%
+  annual cost of a bare pole $62.12
+  annual rate $7.68

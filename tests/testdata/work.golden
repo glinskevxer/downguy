@@ -1,0 +1,5 @@
+item     action        pole       subject  owner                      from       to  detail
+-------  ------------  ---------  -------  ----------------------  -------  -------  ----------------------------
+MR-0001  replace_pole  NW-441829           SUMMIT VALLEY ELECTRIC                    45/3 SPF
+MR-0002  transfer      NW-441829  A3       RIDGEPORT CABLEVISION   20.0 ft  20.0 ft  transfer to the new 45/3 SPF
+MR-0003  raise         NW-441830  A4       NORTHVALE TELEPHONE     18.6 ft  19.6 ft  lift A4 by 1.0 ft

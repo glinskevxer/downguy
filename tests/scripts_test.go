@@ -307,3 +307,34 @@ func TestTheMakefileHasABenchmarkTarget(t *testing.T) {
 		t.Error("the bench target does not report allocations, which is half of what a benchmark is for")
 	}
 }
+
+func TestTheGoldenFilesAreCheckedIn(t *testing.T) {
+	t.Parallel()
+	entries, err := os.ReadDir(filepath.Join(repoRoot(t), "tests", "testdata"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	count := 0
+	for _, entry := range entries {
+		if strings.HasSuffix(entry.Name(), ".golden") {
+			count++
+		}
+	}
+	if count < 5 {
+		t.Errorf("only %d golden files, which is not enough of the printed output to notice drift", count)
+	}
+	makefile, err := os.ReadFile(filepath.Join(repoRoot(t), "Makefile"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(makefile), "-update-golden") {
+		t.Error("the makefile has no way to rewrite the golden files, so somebody will edit them by hand")
+	}
+	ignore, err := os.ReadFile(filepath.Join(repoRoot(t), ".gitignore"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(ignore), "testdata") {
+		t.Error("the golden files have to be checked in or they compare against nothing")
+	}
+}
