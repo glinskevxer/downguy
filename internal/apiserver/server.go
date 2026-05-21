@@ -27,11 +27,14 @@ var ErrBadRequest = errors.New("apiserver: bad request")
 
 // Server holds the handlers and what they read from.
 type Server struct {
-	db     *sql.DB
-	cfg    config.Config
-	plant  *store.Plant
-	routes map[string]http.HandlerFunc
-	now    func() time.Time
+	db      *sql.DB
+	cfg     config.Config
+	plant   *store.Plant
+	routes  map[string]http.HandlerFunc
+	now     func() time.Time
+	ids     *idCounter
+	logger  Logger
+	timeout time.Duration
 }
 
 // New builds a server over an open database.
@@ -44,8 +47,10 @@ func New(db *sql.DB, cfg config.Config) (*Server, error) {
 	}
 	s := &Server{
 		db: db, cfg: cfg, plant: store.NewPlant(db),
-		routes: map[string]http.HandlerFunc{},
-		now:    time.Now,
+		routes:  map[string]http.HandlerFunc{},
+		now:     time.Now,
+		ids:     newIDCounter(time.Now()),
+		timeout: DefaultTimeout,
 	}
 	s.route("/healthz", s.handleHealth)
 	s.route("/readyz", s.handleReady)
@@ -87,7 +92,10 @@ func (s *Server) Handler() http.Handler {
 		mux.HandleFunc(path, handler)
 	}
 	mux.HandleFunc("/", s.handleIndex)
-	return s.withRecovery(s.withReadOnly(mux))
+	// Outermost first: an id before anything that logs one, recovery before
+	// anything that can panic, and the timeout innermost so the handler sees a
+	// context that is already bounded.
+	return s.withRequestID(s.withLogging(s.withRecovery(s.withReadOnly(s.withTimeout(mux)))))
 }
 
 // withReadOnly refuses anything but a read. The service has no write side and
