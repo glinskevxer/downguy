@@ -23,7 +23,7 @@ LDFLAGS := -s -w \
 all: check
 
 .PHONY: check
-check: fmt-check vet build test cover-check command-reference
+check: fmt-check vet lint build test cover-check command-reference
 
 .PHONY: build
 build:
@@ -44,6 +44,10 @@ fmt-check:
 	if [ -n "$$bad" ]; then \
 		echo "gofmt would change:"; echo "$$bad"; exit 1; \
 	fi
+
+.PHONY: lint
+lint:
+	@./scripts/lint.sh
 
 .PHONY: vet
 vet:

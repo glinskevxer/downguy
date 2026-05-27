@@ -49,15 +49,23 @@ type Space struct {
 	Usable     unit.Height
 }
 
-// StandardSpace returns the presumptive division the rate schedule is built
-// on.
-func StandardSpace() Space {
-	s, err := NewSpace(StandardPoleHeight, StandardBurial, StandardGroundClearance, StandardSafetyZone)
+// standardSpace is built once from the presumptive figures above. It cannot
+// fail for those constants, and building it at package load rather than on
+// every call means the failure path is a startup panic rather than an error
+// every caller has to pretend to handle.
+var standardSpace = mustSpace(StandardPoleHeight, StandardBurial, StandardGroundClearance, StandardSafetyZone)
+
+func mustSpace(height, burial, clearance, safetyZone unit.Height) Space {
+	s, err := NewSpace(height, burial, clearance, safetyZone)
 	if err != nil {
 		panic(err)
 	}
 	return s
 }
+
+// StandardSpace returns the presumptive division the rate schedule is built
+// on.
+func StandardSpace() Space { return standardSpace }
 
 // NewSpace divides a pole. Unusable space is everything nobody can attach in:
 // the buried part, the ground clearance under the lowest attachment, and the

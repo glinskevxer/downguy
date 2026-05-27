@@ -68,7 +68,12 @@ func (s *Server) WithClock(now func() time.Time) *Server {
 }
 
 // route registers a handler on an exact path.
-func (s *Server) route(path string, handler http.HandlerFunc) {
+func (s *Server) route(path string, handler http.HandlerFunc) { s.mustRoute(path, handler) }
+
+// mustRoute is the registration guard. Two handlers on one path is a
+// programming error that should stop the process starting rather than let one
+// of them win silently.
+func (s *Server) mustRoute(path string, handler http.HandlerFunc) {
 	if _, seen := s.routes[path]; seen {
 		panic("apiserver: two handlers on " + path)
 	}

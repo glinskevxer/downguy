@@ -242,7 +242,7 @@ func TestTheCommandReferenceScriptIsWiredIn(t *testing.T) {
 	if !strings.Contains(string(makefile), "command-reference.sh") {
 		t.Error("the makefile never runs the command reference check")
 	}
-	if !strings.Contains(string(makefile), "check: fmt-check vet build test cover-check command-reference") {
+	if !strings.Contains(string(makefile), "cover-check command-reference") {
 		t.Error("the check target does not include the command reference")
 	}
 	w := loadWorkflow(t)
@@ -336,5 +336,99 @@ func TestTheGoldenFilesAreCheckedIn(t *testing.T) {
 	}
 	if strings.Contains(string(ignore), "testdata") {
 		t.Error("the golden files have to be checked in or they compare against nothing")
+	}
+}
+
+func TestTheLintScriptIsWiredInAndCoversTheProjectRules(t *testing.T) {
+	t.Parallel()
+	body, err := os.ReadFile(filepath.Join(repoRoot(t), "scripts", "lint.sh"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(body)
+	for _, want := range []string{"os.Std", `os\.Exit`, `panic\(`, "_test.go", "NESC-"} {
+		if !strings.Contains(text, want) {
+			t.Errorf("lint.sh does not check for %q", want)
+		}
+	}
+	makefile, err := os.ReadFile(filepath.Join(repoRoot(t), "Makefile"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(makefile), "lint.sh") {
+		t.Error("the makefile has no lint target")
+	}
+	if !strings.Contains(string(makefile), "check: fmt-check vet lint build") {
+		t.Error("the check target does not run the lint")
+	}
+	w := loadWorkflow(t)
+	found := false
+	for _, step := range w.Jobs["checks"].Steps {
+		if strings.Contains(step.Run, "make lint") {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("the checks job never runs the lint")
+	}
+}
+
+func TestTheLintScriptActuallyRefusesABreach(t *testing.T) {
+	t.Parallel()
+	if _, err := exec.LookPath("bash"); err != nil {
+		t.Skip("no bash on this machine")
+	}
+	root := repoRoot(t)
+	clean := exec.Command("bash", filepath.Join(root, "scripts", "lint.sh"))
+	clean.Dir = root
+	if out, err := clean.CombinedOutput(); err != nil {
+		t.Fatalf("the tree should be clean: %v\n%s", err, out)
+	}
+
+	// Plant a breach in a copy of the tree and check the script finds it. A
+	// gate nobody has watched fail is a gate nobody knows works.
+	work := t.TempDir()
+	copyTree(t, filepath.Join(root, "internal"), filepath.Join(work, "internal"))
+	copyTree(t, filepath.Join(root, "scripts"), filepath.Join(work, "scripts"))
+	breach := filepath.Join(work, "internal", "unit", "breach.go")
+	body := "package unit\n\nimport \"os\"\n\n// Breach writes where it should not.\nfunc Breach() { _, _ = os.Stdout.Write(nil) }\n"
+	if err := os.WriteFile(breach, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	dirty := exec.Command("bash", filepath.Join(work, "scripts", "lint.sh"))
+	dirty.Dir = work
+	out, err := dirty.CombinedOutput()
+	if err == nil {
+		t.Fatalf("the planted breach was not caught:\n%s", out)
+	}
+	if !strings.Contains(string(out), "process's streams") {
+		t.Errorf("output = %s", out)
+	}
+}
+
+// copyTree copies a directory of source files for a test that has to modify
+// one without touching the checkout.
+func copyTree(t *testing.T, from, to string) {
+	t.Helper()
+	err := filepath.Walk(from, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(from, path)
+		if err != nil {
+			return err
+		}
+		target := filepath.Join(to, rel)
+		if info.IsDir() {
+			return os.MkdirAll(target, 0o755)
+		}
+		body, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(target, body, info.Mode())
+	})
+	if err != nil {
+		t.Fatal(err)
 	}
 }

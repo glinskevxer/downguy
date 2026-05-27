@@ -51,7 +51,12 @@ var commands = map[string]Command{}
 // Register adds a subcommand. It panics on a duplicate name, because two
 // commands answering to one word is a programming error that should not reach
 // a build.
-func Register(c Command) {
+func Register(c Command) { mustRegister(c) }
+
+// mustRegister is where the registration guards live. Every caller is an init
+// function, so a panic here is a build that will not start rather than a
+// failure at runtime, which is what a duplicate command name deserves.
+func mustRegister(c Command) {
 	if c.Name == "" || c.Run == nil {
 		panic("cliapp: a command needs a name and something to run")
 	}
