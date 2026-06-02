@@ -179,3 +179,70 @@ func TestMakereadyRejectsBadUse(t *testing.T) {
 		t.Errorf("a missing pole gave code %d", got.Code)
 	}
 }
+
+const stackedAttachments = `attachment_id,pole_id,owner,kind,height,authorized,voltage,face
+A1,NW-441829,SUMMIT VALLEY ELECTRIC,primary,31.5,y,7620,
+A2,NW-441829,SUMMIT VALLEY ELECTRIC,neutral,28.5,y,,
+A3,NW-441829,RIDGEPORT CABLEVISION,comm_cable,18.6,y,,
+A6,NW-441829,RIDGEPORT CABLEVISION,power_supply,16.8,y,,climbing
+`
+
+const stackedSurvey = `survey_id,pole_id,taken,crew,condition,subject,height,method
+SV-8100,NW-441829,2025-05-06,CREW 41,sound,A1,31.5,laser
+SV-8100,NW-441829,2025-05-06,CREW 41,sound,A2,28.5,laser
+SV-8100,NW-441829,2025-05-06,CREW 41,sound,A3,18.6,laser
+SV-8100,NW-441829,2025-05-06,CREW 41,sound,A6,16.8,stick
+`
+
+func stackedDB(t *testing.T) string {
+	t.Helper()
+	path := tempDB(t)
+	for _, step := range [][2]string{
+		{poleCSV, "poles"},
+		{stackedAttachments, "attachments"},
+		{stackedSurvey, "surveys"},
+	} {
+		if got := cliIn(step[0], "import", "-db", path, step[1]); got.Code != cliapp.CodeOK {
+			t.Fatalf("%s: %+v", step[1], got)
+		}
+	}
+	return path
+}
+
+func TestMakereadyFoldsTheFindingsAFacilityIsAlreadyMovingFor(t *testing.T) {
+	t.Parallel()
+	path := stackedDB(t)
+	// The power supply is bolted to the climbing face, which forces it to move
+	// outright, and it is also eighteen tenths under the cable above it, which
+	// on its own would be a separate lift. One facility, two findings, one job.
+	folded := cli("makeready", "-db", path, "NW-441829")
+	if folded.Code != cliapp.CodeFindings {
+		t.Fatalf("code = %d, stdout = %q, stderr = %q", folded.Code, folded.Stdout, folded.Stderr)
+	}
+	if !strings.Contains(folded.Stdout, "covered by work already planned") {
+		t.Errorf("stdout does not mention the suppression:\n%s", folded.Stdout)
+	}
+	if !strings.Contains(folded.Stdout, "NESC-238A") {
+		t.Errorf("the folded finding should be named:\n%s", folded.Stdout)
+	}
+
+	every := cli("makeready", "-db", path, "-json", "-every-finding", "NW-441829")
+	if every.Code != cliapp.CodeFindings {
+		t.Fatalf("code = %d", every.Code)
+	}
+	var withAll report.PlanJSON
+	if err := json.Unmarshal([]byte(every.Stdout), &withAll); err != nil {
+		t.Fatal(err)
+	}
+	collapsed := cli("makeready", "-db", path, "-json", "NW-441829")
+	var withFolded report.PlanJSON
+	if err := json.Unmarshal([]byte(collapsed.Stdout), &withFolded); err != nil {
+		t.Fatal(err)
+	}
+	if len(withFolded.Items) >= len(withAll.Items) {
+		t.Errorf("folding should plan less work: %d against %d", len(withFolded.Items), len(withAll.Items))
+	}
+	if !strings.Contains(collapsed.Stderr, "covered:") {
+		t.Errorf("the json run should still say what it folded, got %q", collapsed.Stderr)
+	}
+}

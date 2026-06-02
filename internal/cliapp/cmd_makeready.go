@@ -2,6 +2,7 @@ package cliapp
 
 import (
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/glinskevxer/downguy/internal/clearance"
@@ -36,6 +37,8 @@ func newMakereadyFlags(out io.Writer) *Flags {
 	f := newEngineeringFlags("makeready", out)
 	f.Set().String("applicant", "", "the attacher applying")
 	f.Set().String("application", "", "the application id to label the plan with")
+	f.Set().Bool("every-finding", false,
+		"plan work for every finding, including the ones a facility is already being moved for")
 	return f
 }
 
@@ -95,6 +98,11 @@ func runMakeready(env *Env) int {
 		findings = clearance.Attribute(before, after)
 	}
 
+	var hidden []clearance.Suppression
+	if !flagBool(f, "every-finding") {
+		findings, hidden = clearance.Suppress(findings)
+	}
+
 	planner := makeready.NewPlanner(application)
 	planner.Know(applied.Assembly)
 	plan := planner.Plan(findings)
@@ -110,6 +118,20 @@ func runMakeready(env *Env) int {
 		env.Print("%s on %s\n\n", application, id)
 		if err := report.Work(env.Stdout, plan); err != nil {
 			return env.Fail(CodeInternal, "%v", err)
+		}
+		if len(hidden) > 0 {
+			env.Print("\n%d findings are covered by work already planned:\n", len(hidden))
+			for _, h := range hidden {
+				env.Print("  %s %s\n", h.Hidden.RuleID, h.Reason)
+			}
+		}
+	}
+	if f.JSON() && len(hidden) > 0 {
+		// The json shape carries the plan, so the suppressions go to standard
+		// error rather than being dropped: a caller piping the plan onward
+		// still gets told what was folded into it.
+		for _, h := range hidden {
+			fmt.Fprintf(env.Stderr, "covered: %s %s\n", h.Hidden.RuleID, h.Reason)
 		}
 	}
 	if plan.Empty() && len(plan.Unresolved) == 0 {
