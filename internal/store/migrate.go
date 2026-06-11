@@ -152,6 +152,19 @@ CREATE TABLE rental_bills (
 );
 CREATE INDEX rental_bills_by_owner ON rental_bills (owner, year);
 `},
+	{Version: 8, Name: "change_log", Up: `
+CREATE TABLE change_log (
+    seq       INTEGER PRIMARY KEY AUTOINCREMENT,
+    at        TEXT NOT NULL,
+    subject   TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    action    TEXT NOT NULL,
+    actor     TEXT NOT NULL,
+    detail    TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX change_log_by_subject ON change_log (subject, subject_id, seq);
+CREATE INDEX change_log_by_at ON change_log (at);
+`},
 }
 
 // Migrations returns the schema steps in version order.

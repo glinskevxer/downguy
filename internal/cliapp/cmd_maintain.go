@@ -102,6 +102,7 @@ func runMaintain(env *Env) int {
 			{"spans", counts.Spans}, {"anchors", counts.Anchors}, {"guys", counts.Guys},
 			{"applications", counts.Applications}, {"surveys", counts.Surveys},
 			{"rental bills", counts.Bills},
+			{"change log", counts.Changes},
 		} {
 			table.Row(row[0].(string), itoaCLI(row[1].(int)))
 		}

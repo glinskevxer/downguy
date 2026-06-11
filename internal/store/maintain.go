@@ -17,12 +17,13 @@ type Counts struct {
 	Applications int
 	Surveys      int
 	Bills        int
+	Changes      int
 }
 
 // Total returns everything counted.
 func (c Counts) Total() int {
 	return c.Poles + c.Attachments + c.Spans + c.Anchors + c.Guys +
-		c.Applications + c.Surveys + c.Bills
+		c.Applications + c.Surveys + c.Bills + c.Changes
 }
 
 // tallyTable pairs a table with where its count goes.
@@ -43,6 +44,7 @@ var tallyTables = []tallyTable{
 	{"applications", func(c *Counts) *int { return &c.Applications }},
 	{"pole_surveys", func(c *Counts) *int { return &c.Surveys }},
 	{"rental_bills", func(c *Counts) *int { return &c.Bills }},
+	{"change_log", func(c *Counts) *int { return &c.Changes }},
 }
 
 // TalliedTables returns the tables the tally counts, sorted.

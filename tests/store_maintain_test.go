@@ -210,6 +210,8 @@ func TestTheTallyCoversEveryTableTheMigrationsCreate(t *testing.T) {
 		"schema_migrations": true,
 		"application_poles": true, "application_events": true,
 		"survey_measurements": true, "rate_years": true,
+		// sqlite creates this one itself to back an AUTOINCREMENT column.
+		"sqlite_sequence": true,
 	}
 	for _, name := range tables {
 		if counted[name] || notCounted[name] {
