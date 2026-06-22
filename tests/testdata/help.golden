@@ -15,6 +15,7 @@ commands:
   costbook     print the unit cost book as it stood on a day
   estimate     price a make ready plan against the unit cost book
   export       write plant back out as csv
+  history      read the change log for a record, a person or a date
   import       load a plant or survey export into the database
   init         create or migrate the database
   inspect      list the poles a groundline inspection programme should visit next

@@ -38,6 +38,8 @@ func newImportFlags(out io.Writer) *Flags {
 	f := NewFlags("import", out)
 	f.Set().Bool("dry-run", false, "read and check the file without writing anything")
 	f.Set().Int("max-problems", 20, "how many bad rows to print before summarising")
+	f.Set().String("by", "", "who is running the import, recorded against every row it files")
+	f.Set().String("on", "", "the date to record the import under, as yyyy-mm-dd")
 	return f
 }
 
@@ -87,6 +89,12 @@ func runImport(env *Env) int {
 		return env.Fail(CodeUsage, "%v", err)
 	}
 
+	if !dryRun && written > 0 {
+		if code := recordImport(ctx, env, f, kind, written); code != CodeOK {
+			return code
+		}
+	}
+
 	verb := "filed"
 	if dryRun {
 		verb = "would file"
@@ -107,6 +115,42 @@ func runImport(env *Env) int {
 	}
 	env.Print("%d rows rejected\n", len(problems))
 	return CodeFindings
+}
+
+// importSubject maps a file kind onto the change log subject it writes.
+var importSubject = map[string]store.Subject{
+	"poles":       store.SubjectPole,
+	"attachments": store.SubjectAttachment,
+	"spans":       store.SubjectSpan,
+	"surveys":     store.SubjectSurvey,
+}
+
+// recordImport writes one change log entry for the run. It is one entry rather
+// than one per row on purpose: what somebody asks later is which import
+// brought a batch in, not which of fifteen thousand rows.
+func recordImport(ctx context.Context, env *Env, f *Flags, kind string, written int) int {
+	by := stringFlag(f, "by")
+	if by == "" {
+		return CodeOK
+	}
+	on, err := requiredDateFlag(f, "on")
+	if err != nil {
+		return env.Fail(CodeUsage, "-by needs -on as well: %v", err)
+	}
+	handle, _, err := f.Open(ctx, env)
+	if err != nil {
+		return env.Fail(CodeInternal, "%v", err)
+	}
+	defer func() { _ = handle.Close() }()
+
+	_, err = store.NewChangeLog(handle).Append(ctx, store.Change{
+		At: on, Subject: importSubject[kind], ID: kind, Action: store.ActionImported,
+		Actor: by, Detail: fmt.Sprintf("%d rows filed", written),
+	})
+	if err != nil {
+		return env.Fail(CodeInternal, "%v", err)
+	}
+	return CodeOK
 }
 
 func knownImportKind(kind string) bool {
