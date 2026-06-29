@@ -161,3 +161,64 @@ func TestSweepRejectsBadUse(t *testing.T) {
 		}
 	}
 }
+
+func TestSweepGivesTheSameAnswerWhateverTheWorkerCount(t *testing.T) {
+	t.Parallel()
+	path := sweepDB(t)
+	one := cli("sweep", "-db", path, "-json", "-workers", "1")
+	many := cli("sweep", "-db", path, "-json", "-workers", "8")
+	if one.Code != many.Code {
+		t.Fatalf("codes = %d and %d", one.Code, many.Code)
+	}
+	if one.Stdout != many.Stdout {
+		t.Errorf("the worker count changed the answer:\n%s\nagainst\n%s", one.Stdout, many.Stdout)
+	}
+	def := cli("sweep", "-db", path, "-json")
+	if def.Stdout != one.Stdout {
+		t.Errorf("the default worker count changed the answer:\n%s", def.Stdout)
+	}
+}
+
+func TestSweepAcrossManyPolesStaysOrdered(t *testing.T) {
+	t.Parallel()
+	path := tempDB(t)
+	var poles strings.Builder
+	var surveys strings.Builder
+	poles.WriteString("pole_id,length_ft,class,species,owner,condition\n")
+	surveys.WriteString("survey_id,pole_id,taken,crew,condition,subject,height,method\n")
+	for i := 0; i < 12; i++ {
+		tag := "NW-4410" + string(rune('0'+i/10)) + string(rune('0'+i%10))
+		poles.WriteString(tag + ",40,4,SPF,SUMMIT VALLEY ELECTRIC,sound\n")
+		if i%3 != 0 {
+			continue
+		}
+		surveys.WriteString("SV-" + tag + "," + tag + ",2025-05-06,CREW 41,sound,A1,31.5,laser\n")
+	}
+	if got := cliIn(poles.String(), "import", "-db", path, "poles"); got.Code != cliapp.CodeOK {
+		t.Fatal(got.Stderr)
+	}
+	if got := cliIn(surveys.String(), "import", "-db", path, "surveys"); got.Code != cliapp.CodeOK {
+		t.Fatal(got.Stderr)
+	}
+	var previous string
+	for _, workers := range []string{"1", "2", "5", "8"} {
+		got := cli("sweep", "-db", path, "-json", "-workers", workers)
+		if got.Code != cliapp.CodeOK {
+			t.Fatalf("%s workers gave code %d: %s", workers, got.Code, got.Stderr)
+		}
+		var back cliapp.SweepJSON
+		if err := json.Unmarshal([]byte(got.Stdout), &back); err != nil {
+			t.Fatal(err)
+		}
+		if back.Poles != 4 {
+			t.Errorf("%s workers checked %d poles", workers, back.Poles)
+		}
+		if len(back.Skipped) != 8 {
+			t.Errorf("%s workers skipped %d", workers, len(back.Skipped))
+		}
+		if previous != "" && previous != got.Stdout {
+			t.Fatalf("the answer moved at %s workers", workers)
+		}
+		previous = got.Stdout
+	}
+}

@@ -39,8 +39,14 @@ func newSweepFlags(out io.Writer) *Flags {
 	f.Set().String("as-of", "", "the date to judge survey staleness against")
 	f.Set().Bool("allow-stale", false, "include poles whose survey is past its shelf life")
 	f.Set().Bool("csv", false, "write the findings as csv")
+	f.Set().Int("workers", 0, "how many poles to check at once")
 	return f
 }
+
+// errStaleSurvey is the sentinel a worker returns for a pole whose only survey
+// is too old to engineer from. It is a sentinel rather than a message because
+// the reason is turned back into a sentence in one place.
+var errStaleSurvey = errors.New("stale survey")
 
 // SweepJSON is a whole sweep on the wire.
 type SweepJSON struct {
@@ -97,40 +103,50 @@ func runSweep(env *Env) int {
 
 	engine := clearance.New()
 	out := SweepJSON{ByRule: map[string]int{}, ByOwner: map[string]int{}}
-	var findings clearance.Findings
 
+	tags := make([]string, 0, len(poles))
 	for _, pole := range poles {
-		sheet, err := surveys.Latest(ctx, pole.ID)
-		if errors.Is(err, store.ErrNotFound) {
-			out.Skipped = append(out.Skipped, SkipJSON{Pole: string(pole.ID), Reason: "no survey on file"})
-			continue
-		}
-		if err != nil {
-			return env.Fail(CodeInternal, "%v", err)
-		}
-		if !asOf.IsZero() && sheet.Stale(asOf) && !allowStale {
-			out.Skipped = append(out.Skipped, SkipJSON{
-				Pole: string(pole.ID), Reason: "the survey is past its shelf life",
-			})
-			continue
-		}
-		applied, err := loadSurveyed(ctx, db, pole.ID)
-		if err != nil {
-			out.Skipped = append(out.Skipped, SkipJSON{Pole: string(pole.ID), Reason: err.Error()})
-			continue
-		}
-		found, err := engine.CheckPole(clearance.PoleContext{
-			Applied: applied, District: engineering.District, Grade: engineering.Grade,
-		})
-		if err != nil {
-			out.Skipped = append(out.Skipped, SkipJSON{Pole: string(pole.ID), Reason: err.Error()})
-			continue
-		}
-		out.Poles++
-		findings = append(findings, found...)
+		tags = append(tags, string(pole.ID))
 	}
 
-	findings.Sort()
+	// Each pole is checked on its own connection and shares nothing with the
+	// others, so the only thing the worker count changes is how long the sweep
+	// takes. The results come back in the order the poles were listed either
+	// way, which is what keeps two runs diffable.
+	results, err := clearance.SweepPoles(ctx, tags, flagInt(f, "workers", 0),
+		func(ctx context.Context, tag string) (clearance.Findings, error) {
+			id := plant.PoleID(tag)
+			sheet, err := surveys.Latest(ctx, id)
+			if err != nil {
+				return nil, err
+			}
+			if !asOf.IsZero() && sheet.Stale(asOf) && !allowStale {
+				return nil, errStaleSurvey
+			}
+			applied, err := loadSurveyed(ctx, db, id)
+			if err != nil {
+				return nil, err
+			}
+			return engine.CheckPole(clearance.PoleContext{
+				Applied: applied, District: engineering.District, Grade: engineering.Grade,
+			})
+		})
+	if err != nil {
+		return env.Fail(CodeInternal, "%v", err)
+	}
+
+	findings, failed := clearance.Collect(results)
+	out.Poles = clearance.Checked(results)
+	for _, r := range failed {
+		reason := r.Err.Error()
+		if errors.Is(r.Err, errStaleSurvey) {
+			reason = "the survey is past its shelf life"
+		} else if notFound(r.Err) {
+			reason = "no survey on file"
+		}
+		out.Skipped = append(out.Skipped, SkipJSON{Pole: r.Pole, Reason: reason})
+	}
+
 	for _, finding := range findings {
 		out.ByRule[finding.RuleID]++
 		if finding.Owner != "" {
