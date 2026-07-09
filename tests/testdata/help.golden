@@ -13,6 +13,7 @@ commands:
   conductors   list the catalogued conductors
   config       print the settings a run would use
   costbook     print the unit cost book as it stood on a day
+  demo         load a small worked example into an empty database
   estimate     price a make ready plan against the unit cost book
   export       write plant back out as csv
   history      read the change log for a record, a person or a date
