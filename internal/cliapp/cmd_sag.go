@@ -7,6 +7,7 @@ import (
 
 	"github.com/glinskevxer/downguy/internal/report"
 	"github.com/glinskevxer/downguy/internal/sagten"
+	"github.com/glinskevxer/downguy/internal/unit"
 )
 
 func init() {
@@ -126,7 +127,7 @@ func runSag(env *Env) int {
 		if over[row.Label] {
 			note = "over the working limit"
 		}
-		out.Row(row.Label, itoaCLI(row.Temperature.Degrees()),
+		out.Row(row.Label, unit.Whole(row.Temperature.Degrees()),
 			fmt.Sprintf("%.4f", row.LoadPerFoot),
 			fmt.Sprintf("%.0f", row.Tension),
 			fmt.Sprintf("%.2f", row.SagFeet), note)

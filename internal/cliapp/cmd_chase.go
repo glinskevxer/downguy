@@ -7,6 +7,7 @@ import (
 	"github.com/glinskevxer/downguy/internal/permit"
 	"github.com/glinskevxer/downguy/internal/report"
 	"github.com/glinskevxer/downguy/internal/store"
+	"github.com/glinskevxer/downguy/internal/unit"
 )
 
 func init() {
@@ -107,7 +108,7 @@ func runChase(env *Env) int {
 		table.RightAlign(5)
 		for _, r := range reminders {
 			table.Row(r.Application, string(r.State), string(r.Holder), r.Party,
-				r.Due.String(), itoaCLI(r.Remaining), string(r.Urgency), r.Cite)
+				r.Due.String(), unit.Whole(r.Remaining), string(r.Urgency), r.Cite)
 		}
 		if err := table.Render(env.Stdout); err != nil {
 			return env.Fail(CodeInternal, "%v", err)

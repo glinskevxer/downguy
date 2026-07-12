@@ -6,6 +6,7 @@ import (
 
 	"github.com/glinskevxer/downguy/internal/report"
 	"github.com/glinskevxer/downguy/internal/store"
+	"github.com/glinskevxer/downguy/internal/unit"
 )
 
 func init() {
@@ -104,7 +105,7 @@ func runMaintain(env *Env) int {
 			{"rental bills", counts.Bills},
 			{"change log", counts.Changes},
 		} {
-			table.Row(row[0].(string), itoaCLI(row[1].(int)))
+			table.Row(row[0].(string), unit.Whole(row[1].(int)))
 		}
 		if err := table.Render(env.Stdout); err != nil {
 			return env.Fail(CodeInternal, "%v", err)

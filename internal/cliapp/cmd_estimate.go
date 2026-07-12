@@ -195,7 +195,7 @@ func runEstimate(env *Env) int {
 	table := report.NewTable("item", "code", "description", "qty", "unit", "amount", "owner")
 	table.RightAlign(3, 4, 5)
 	for _, l := range estimate.Lines {
-		quantity := itoaCLI(l.Quantity)
+		quantity := unit.Whole(l.Quantity)
 		if l.Scale > 1 {
 			quantity = fmt.Sprintf("%d.%d", l.Quantity/l.Scale, l.Quantity%l.Scale)
 		}

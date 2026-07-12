@@ -40,8 +40,8 @@ func FindingsJSON(findings clearance.Findings) []FindingJSON {
 			Rule: f.RuleID, Severity: string(f.Severity),
 			Pole: f.Pole, Span: f.Span, Subject: f.Subject, Against: f.Against,
 			Owner: f.Owner, Blame: string(f.Blame),
-			Measured: decimal(f.Measured), Required: decimal(f.Required),
-			Deficit: decimal(f.Deficit()), Detail: f.Detail,
+			Measured: unit.Decimal(f.Measured), Required: unit.Decimal(f.Required),
+			Deficit: unit.Decimal(f.Deficit()), Detail: f.Detail,
 		})
 	}
 	return out
@@ -70,8 +70,8 @@ func WorkItemToJSON(item makeready.Item) WorkItemJSON {
 		Subject: item.Subject, Owner: item.Owner, Because: item.Because, Detail: item.Detail,
 	}
 	if item.FromHeight != 0 || item.ToHeight != 0 {
-		out.From = decimal(item.FromHeight)
-		out.To = decimal(item.ToHeight)
+		out.From = unit.Decimal(item.FromHeight)
+		out.To = unit.Decimal(item.ToHeight)
 	}
 	return out
 }
@@ -127,13 +127,13 @@ func AnalysisToJSON(a *loading.Analysis) AnalysisJSON {
 	out := AnalysisJSON{
 		Pole: string(a.Pole.ID), District: string(a.District), Grade: string(a.Grade),
 		Components: make([]ComponentJSON, 0, len(a.Components)),
-		Factored:   round(a.FactoredMoment), Capacity: round(a.FactoredCapacty),
+		Factored:   unit.RoundToWhole(a.FactoredMoment), Capacity: unit.RoundToWhole(a.FactoredCapacty),
 		Utilisation: a.UtilisationPercent(), Passes: a.Passes(),
 	}
 	for _, c := range a.Components {
 		out.Components = append(out.Components, ComponentJSON{
 			Source: c.Source, Kind: c.Kind,
-			Moment: round(c.Moment), Factored: round(c.Factored),
+			Moment: unit.RoundToWhole(c.Moment), Factored: unit.RoundToWhole(c.Factored),
 		})
 	}
 	return out
@@ -148,26 +148,4 @@ func WriteJSON(w io.Writer, value any) error {
 		return fmt.Errorf("report: writing json: %w", err)
 	}
 	return nil
-}
-
-// decimal prints a stored height the way every wire format here does: decimal
-// feet with one place and no unit, because the field name carries the unit.
-func decimal(h unit.Height) string {
-	sign := ""
-	value := h.Tenths()
-	if value < 0 {
-		sign = "-"
-		value = -value
-	}
-	return fmt.Sprintf("%s%d.%d", sign, value/10, value%10)
-}
-
-// round takes a foot pound figure to the nearest whole unit. Moments are
-// worked out in floating point and printing fourteen significant figures of
-// one invites an argument about the fourteenth.
-func round(v float64) float64 {
-	if v < 0 {
-		return -float64(int64(-v + 0.5))
-	}
-	return float64(int64(v + 0.5))
 }

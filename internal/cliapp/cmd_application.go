@@ -10,6 +10,7 @@ import (
 	"github.com/glinskevxer/downguy/internal/plant"
 	"github.com/glinskevxer/downguy/internal/report"
 	"github.com/glinskevxer/downguy/internal/store"
+	"github.com/glinskevxer/downguy/internal/unit"
 )
 
 func init() {
@@ -231,7 +232,7 @@ func applicationList(env *Env, f *Flags, repo *store.Applications, ctx context.C
 	table.RightAlign(4)
 	for _, app := range apps {
 		table.Row(app.ID, app.Applicant, string(app.State), string(app.HeldBy()),
-			itoaCLI(app.PoleCount()), app.Opened().String())
+			unit.Whole(app.PoleCount()), app.Opened().String())
 	}
 	if table.Len() == 0 {
 		env.Println("no applications")

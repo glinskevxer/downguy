@@ -7,6 +7,7 @@ import (
 	"github.com/glinskevxer/downguy/internal/calendar"
 	"github.com/glinskevxer/downguy/internal/rental"
 	"github.com/glinskevxer/downguy/internal/report"
+	"github.com/glinskevxer/downguy/internal/unit"
 )
 
 func init() {
@@ -115,7 +116,7 @@ func runRate(env *Env) int {
 	table := report.NewTable("year", "formula", "attachers", "space factor", "pole cost", "annual", "monthly")
 	table.RightAlign(2, 3, 4, 5, 6)
 	for _, r := range wire {
-		table.Row(itoaCLI(r.Year), r.Formula, itoaCLI(r.Attachers),
+		table.Row(unit.Whole(r.Year), r.Formula, unit.Whole(r.Attachers),
 			r.SpaceShare, r.PoleCost, r.Annual, r.Monthly)
 	}
 	if err := table.Render(env.Stdout); err != nil {

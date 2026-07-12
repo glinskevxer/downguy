@@ -7,6 +7,7 @@ import (
 
 	"github.com/glinskevxer/downguy/internal/report"
 	"github.com/glinskevxer/downguy/internal/store"
+	"github.com/glinskevxer/downguy/internal/unit"
 )
 
 func init() {
@@ -133,7 +134,7 @@ func runHistory(env *Env) int {
 		table := report.NewTable("seq", "on", "subject", "record", "action", "by", "detail")
 		table.RightAlign(0)
 		for _, c := range changes {
-			table.Row(itoaCLI(int(c.Seq)), c.At.String(), string(c.Subject),
+			table.Row(unit.Whole(int(c.Seq)), c.At.String(), string(c.Subject),
 				c.ID, string(c.Action), c.Actor, c.Detail)
 		}
 		if err := table.Render(env.Stdout); err != nil {

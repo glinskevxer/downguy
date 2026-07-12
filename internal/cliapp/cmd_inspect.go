@@ -8,6 +8,7 @@ import (
 	"github.com/glinskevxer/downguy/internal/plant"
 	"github.com/glinskevxer/downguy/internal/report"
 	"github.com/glinskevxer/downguy/internal/store"
+	"github.com/glinskevxer/downguy/internal/unit"
 )
 
 func init() {
@@ -145,8 +146,8 @@ func runInspect(env *Env) int {
 			if r.Optimistic {
 				flag = "graded better than its age"
 			}
-			table.Row(r.Pole, r.Species, itoaCLI(r.Installed), itoaCLI(r.Age),
-				r.Stage, itoaCLI(r.Interval), r.Recorded, r.Expected, flag)
+			table.Row(r.Pole, r.Species, unit.Whole(r.Installed), unit.Whole(r.Age),
+				r.Stage, unit.Whole(r.Interval), r.Recorded, r.Expected, flag)
 		}
 		if table.Len() == 0 {
 			env.Println("nothing to inspect")

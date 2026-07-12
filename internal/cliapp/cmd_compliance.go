@@ -8,6 +8,7 @@ import (
 	"github.com/glinskevxer/downguy/internal/permit"
 	"github.com/glinskevxer/downguy/internal/report"
 	"github.com/glinskevxer/downguy/internal/store"
+	"github.com/glinskevxer/downguy/internal/unit"
 )
 
 func init() {
@@ -194,20 +195,20 @@ func printCompliance(env *Env, rows []ComplianceJSON, everything bool) error {
 		for _, in := range shown {
 			allowed, due, over := "", "", ""
 			if in.Timed {
-				allowed = itoaCLI(in.Allowed)
+				allowed = unit.Whole(in.Allowed)
 				if in.Business {
 					allowed += " bd"
 				}
 				due = in.Due
 			}
 			if in.Overrun > 0 {
-				over = itoaCLI(in.Overrun)
+				over = unit.Whole(in.Overrun)
 			}
 			left := in.Left
 			if in.Open {
 				left = "open"
 			}
-			table.Row(in.State, in.Holder, in.Entered, left, itoaCLI(in.Used), allowed, due, over, in.Cite)
+			table.Row(in.State, in.Holder, in.Entered, left, unit.Whole(in.Used), allowed, due, over, in.Cite)
 		}
 		if err := table.Render(env.Stdout); err != nil {
 			return err

@@ -8,6 +8,7 @@ import (
 	"github.com/glinskevxer/downguy/internal/plant"
 	"github.com/glinskevxer/downguy/internal/report"
 	"github.com/glinskevxer/downguy/internal/store"
+	"github.com/glinskevxer/downguy/internal/unit"
 )
 
 func init() {
@@ -180,7 +181,7 @@ func printPole(env *Env, a *plant.Assembly, spans []plant.SpanRecord) int {
 		anchors := report.NewTable("anchor", "lead ft", "bearing", "guys")
 		anchors.RightAlign(1, 2, 3)
 		for _, anchor := range a.Anchors {
-			anchors.Row(anchor.ID, itoaCLI(anchor.Lead), itoaCLI(anchor.Bearing), itoaCLI(len(anchor.Guys)))
+			anchors.Row(anchor.ID, unit.Whole(anchor.Lead), unit.Whole(anchor.Bearing), unit.Whole(len(anchor.Guys)))
 		}
 		if err := anchors.Render(env.Stdout); err != nil {
 			return env.Fail(CodeInternal, "%v", err)
@@ -193,28 +194,11 @@ func printPole(env *Env, a *plant.Assembly, spans []plant.SpanRecord) int {
 		table.RightAlign(2)
 		for _, s := range spans {
 			other, _ := s.Other(a.Pole.ID)
-			table.Row(s.ID, string(other), itoaCLI(s.Length.Feet()), string(s.Cover))
+			table.Row(s.ID, string(other), unit.Whole(s.Length.Feet()), string(s.Cover))
 		}
 		if err := table.Render(env.Stdout); err != nil {
 			return env.Fail(CodeInternal, "%v", err)
 		}
 	}
 	return CodeOK
-}
-
-// itoaCLI prints a whole number without dragging strconv into every file here.
-func itoaCLI(n int) string {
-	if n == 0 {
-		return "0"
-	}
-	sign := ""
-	if n < 0 {
-		sign, n = "-", -n
-	}
-	digits := ""
-	for n > 0 {
-		digits = string(rune('0'+n%10)) + digits
-		n /= 10
-	}
-	return sign + digits
 }

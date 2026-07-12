@@ -4,12 +4,12 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"strconv"
 
 	"github.com/glinskevxer/downguy/internal/clearance"
 	"github.com/glinskevxer/downguy/internal/makeready"
 	"github.com/glinskevxer/downguy/internal/plant"
 	"github.com/glinskevxer/downguy/internal/rental"
+	"github.com/glinskevxer/downguy/internal/unit"
 )
 
 // Writer wraps a csv writer with the header handling every export here needs.
@@ -79,7 +79,7 @@ func WriteFindings(w io.Writer, findings clearance.Findings) error {
 		err := out.Write(
 			f.RuleID, string(f.Severity), f.Pole, f.Span, f.Subject, f.Against,
 			f.Owner, string(f.Blame),
-			tenths(f.Measured.Tenths()), tenths(f.Required.Tenths()), tenths(f.Deficit().Tenths()),
+			unit.Decimal(f.Measured), unit.Decimal(f.Required), unit.Decimal(f.Deficit()),
 			f.Detail,
 		)
 		if err != nil {
@@ -107,7 +107,7 @@ func WriteWork(w io.Writer, plan *makeready.Plan) error {
 	for _, item := range plan.Items {
 		err := out.Write(
 			item.ID, string(item.Action), item.Pole, item.Span, item.Subject, item.Owner,
-			tenths(item.FromHeight.Tenths()), tenths(item.ToHeight.Tenths()), item.Detail,
+			unit.Decimal(item.FromHeight), unit.Decimal(item.ToHeight), item.Detail,
 		)
 		if err != nil {
 			return err
@@ -133,9 +133,9 @@ func WriteBills(w io.Writer, bills []rental.Bill) error {
 			err := out.Write(
 				bill.Number, bill.Year.String(), bill.Owner, string(bill.Formula),
 				line.AttachmentID, string(line.Pole),
-				strconv.Itoa(line.Attachers), money(line.FullRate.AsCents()),
-				strconv.Itoa(line.Days), strconv.Itoa(line.OfDays),
-				money(line.Amount.AsCents()), line.Note,
+				unit.Whole(line.Attachers), unit.Plain(line.FullRate),
+				unit.Whole(line.Days), unit.Whole(line.OfDays),
+				unit.Plain(line.Amount), line.Note,
 			)
 			if err != nil {
 				return err
@@ -166,35 +166,13 @@ func WriteAttachments(w io.Writer, atts []plant.Attachment) error {
 		}
 		err := out.Write(
 			att.ID, string(att.Pole), att.Owner, string(att.Kind),
-			tenths(att.Height.Tenths()), authorized,
+			unit.Decimal(att.Height), authorized,
 			att.InForce.From.String(), att.InForce.To.String(),
-			strconv.Itoa(att.Voltage), string(att.Face), att.Note,
+			unit.Whole(att.Voltage), string(att.Face), att.Note,
 		)
 		if err != nil {
 			return err
 		}
 	}
 	return out.Close()
-}
-
-// tenths prints a stored height as decimal feet with one place, which is the
-// form every one of these files uses.
-func tenths(value int) string {
-	sign := ""
-	if value < 0 {
-		sign = "-"
-		value = -value
-	}
-	return fmt.Sprintf("%s%d.%d", sign, value/10, value%10)
-}
-
-// money prints cents as a plain decimal with no currency sign, because a
-// spreadsheet reads a dollar sign as text.
-func money(cents int64) string {
-	sign := ""
-	if cents < 0 {
-		sign = "-"
-		cents = -cents
-	}
-	return fmt.Sprintf("%s%d.%02d", sign, cents/100, cents%100)
 }

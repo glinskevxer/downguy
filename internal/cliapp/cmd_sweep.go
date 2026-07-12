@@ -11,6 +11,7 @@ import (
 	"github.com/glinskevxer/downguy/internal/plant"
 	"github.com/glinskevxer/downguy/internal/report"
 	"github.com/glinskevxer/downguy/internal/store"
+	"github.com/glinskevxer/downguy/internal/unit"
 )
 
 func init() {
@@ -187,7 +188,7 @@ func printSweep(env *Env, out SweepJSON, findings clearance.Findings) error {
 		byRule := report.NewTable("rule", "findings")
 		byRule.RightAlign(1)
 		for _, id := range sortedKeys(out.ByRule) {
-			byRule.Row(id, itoaCLI(out.ByRule[id]))
+			byRule.Row(id, unit.Whole(out.ByRule[id]))
 		}
 		if err := byRule.Render(env.Stdout); err != nil {
 			return err
@@ -196,7 +197,7 @@ func printSweep(env *Env, out SweepJSON, findings clearance.Findings) error {
 		env.Println()
 		byOwner := map[string]string{}
 		for owner, count := range out.ByOwner {
-			byOwner[owner] = itoaCLI(count)
+			byOwner[owner] = unit.Whole(count)
 		}
 		if err := report.OwnerTotals(env.Stdout, "by attacher", byOwner); err != nil {
 			return err

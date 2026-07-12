@@ -12,6 +12,7 @@ import (
 	"github.com/glinskevxer/downguy/internal/rental"
 	"github.com/glinskevxer/downguy/internal/report"
 	"github.com/glinskevxer/downguy/internal/store"
+	"github.com/glinskevxer/downguy/internal/unit"
 )
 
 func init() {
@@ -150,8 +151,8 @@ func printBills(env *Env, bills []rental.Bill, inventory *rental.Inventory) erro
 	table := report.NewTable("number", "attacher", "formula", "attachments", "prorated", "flagged", "total", "due")
 	table.RightAlign(3, 4, 5, 6)
 	for _, b := range bills {
-		table.Row(b.Number, b.Owner, string(b.Formula), itoaCLI(len(b.Lines)),
-			itoaCLI(len(b.Prorated())), itoaCLI(len(b.Flagged())), b.Total.String(), b.Due.String())
+		table.Row(b.Number, b.Owner, string(b.Formula), unit.Whole(len(b.Lines)),
+			unit.Whole(len(b.Prorated())), unit.Whole(len(b.Flagged())), b.Total.String(), b.Due.String())
 	}
 	if err := table.Render(env.Stdout); err != nil {
 		return err
@@ -249,7 +250,7 @@ func runAudit(env *Env) int {
 		table.RightAlign(4, 5, 6, 7)
 		for _, c := range claims {
 			table.Row(c.AttachmentID, string(c.Pole), c.Owner, string(c.Sanction),
-				itoaCLI(len(c.BackYears)), c.BackRent.String(), c.Penalty.String(), c.Total.String())
+				unit.Whole(len(c.BackYears)), c.BackRent.String(), c.Penalty.String(), c.Total.String())
 		}
 		if table.Len() == 0 {
 			env.Println("no unauthorized attachments")
