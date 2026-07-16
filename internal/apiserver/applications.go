@@ -146,7 +146,7 @@ func summariseApplication(app *permit.Application) ApplicationSummaryJSON {
 // serve command wants and what a caller assembling a smaller service can avoid
 // by registering the groups it wants instead.
 func (s *Server) AllRoutes() *Server {
-	return s.RegisterPlant().RegisterRates().RegisterApplications()
+	return s.RegisterPlant().RegisterRates().RegisterApplications().RegisterFindings()
 }
 
 // HasRoute reports whether a path is registered, matched exactly.
