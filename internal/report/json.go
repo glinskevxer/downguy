@@ -77,10 +77,28 @@ func WorkItemToJSON(item makeready.Item) WorkItemJSON {
 }
 
 // PlanJSON is a make ready plan on the wire.
+//
+// Findings carries the attributed findings the plan was worked out from. It is
+// on the document rather than left to a second command because the cost
+// allocation keys on them: without it a caller has to run the clearance check
+// again and hope it attributes the same way, and the unattributed findings a
+// plain check writes cannot be billed at all.
 type PlanJSON struct {
 	Application string         `json:"application"`
 	Items       []WorkItemJSON `json:"items"`
+	Findings    []FindingJSON  `json:"findings,omitempty"`
 	Unresolved  []FindingJSON  `json:"unresolved,omitempty"`
+}
+
+// PlanWithFindings turns a plan into its wire shape, carrying the attributed
+// findings it was worked out from.
+func PlanWithFindings(plan *makeready.Plan, findings clearance.Findings) PlanJSON {
+	out := PlanToJSON(plan)
+	out.Findings = FindingsJSON(findings)
+	if len(out.Findings) == 0 {
+		out.Findings = nil
+	}
+	return out
 }
 
 // PlanToJSON turns a plan into its wire shape.

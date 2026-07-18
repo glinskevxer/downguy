@@ -91,6 +91,21 @@ this wrong.
 checked against the binary by `scripts/command-reference.sh`, so a command
 added without a line here fails the build.
 
+## One application end to end
+
+```
+downguy makeready -db plant.db -json -applicant 'MERIDIAN FIBER' NW-441829 > plan.json
+downguy estimate  -on 2025-06-01 -quote < plan.json
+downguy packet    < plan.json
+downguy allocate  -on 2025-06-01 -findings plan.json \
+    -owner 'SUMMIT VALLEY ELECTRIC=OWN-1' \
+    -applicant 'MERIDIAN FIBER=ATT-9' < plan.json
+```
+
+`plan.json` carries both the work and the attributed findings behind it, which
+is what lets the allocation say who caused each item rather than guessing.
+`downguy demo` seeds a database this runs against.
+
 ## Layout
 
 | package | what it owns |

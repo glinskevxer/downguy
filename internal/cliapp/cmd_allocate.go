@@ -33,9 +33,10 @@ func allocateUsage() string {
 	return f.Usage("allocate [options]", "allocate [options]",
 		"Reads a make ready plan as json on standard input, prices it, and lands\n"+
 			"every priced item on a party under the allocation policy.\n\n"+
-			"The plan has to carry the attribution the makeready command works out, so\n"+
-			"pass -findings with the json that command writes alongside it. Without it\n"+
-			"nothing can be billed, which the command says rather than guessing.\n\n"+
+			"The allocation keys on the attributed findings, so -findings takes the\n"+
+			"json the makeready command writes: that document carries them. The plain\n"+
+			"clearance output will not do, because its findings are unattributed and an\n"+
+			"unattributed finding cannot be billed to anybody.\n\n"+
 			"The parties come from -owner, -applicant and repeated -attacher options,\n"+
 			"in the form name=account.")
 }

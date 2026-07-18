@@ -111,7 +111,7 @@ func runMakeready(env *Env) int {
 	}
 
 	if f.JSON() {
-		if err := report.WriteJSON(env.Stdout, report.PlanToJSON(plan)); err != nil {
+		if err := report.WriteJSON(env.Stdout, report.PlanWithFindings(plan, findings)); err != nil {
 			return env.Fail(CodeInternal, "%v", err)
 		}
 	} else {
