@@ -72,8 +72,28 @@ if [ "$plan_code" -gt 1 ]; then
 fi
 
 run "$bin" estimate -on 2025-06-01 -quote < "$work/plan.json"
+run "$bin" packet < "$work/plan.json" || packet_code=$?
+if [ "${packet_code:-0}" -gt 1 ]; then
+    echo "smoke: packet exited ${packet_code}" >&2
+    exit 1
+fi
+
+# The allocation reads the findings off the same document the plan came on.
+# Handing it the plain clearance output instead is the join that has broken
+# before, so the smoke run exercises the one that is meant to work.
+run "$bin" allocate -on 2025-06-01 -findings "$work/plan.json" \
+    -owner 'SUMMIT VALLEY ELECTRIC=OWN-1' \
+    -applicant 'MERIDIAN FIBER=ATT-9' \
+    -attacher 'RIDGEPORT CABLEVISION=ATT-3' < "$work/plan.json"
+
 run "$bin" rate -explain 2025
 run "$bin" bill -db "$db" -issued 2026-01-15 2025
+run "$bin" sweep -db "$db" -workers 2 || sweep_code=$?
+if [ "${sweep_code:-0}" -gt 1 ]; then
+    echo "smoke: sweep exited ${sweep_code}" >&2
+    exit 1
+fi
+run "$bin" maintain -db "$db"
 run "$bin" serve -db "$db" -check
 
 echo "smoke: the whole application ran"

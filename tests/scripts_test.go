@@ -432,3 +432,62 @@ func copyTree(t *testing.T, from, to string) {
 		t.Fatal(err)
 	}
 }
+
+func TestTheSmokeScriptWalksTheJoinsBetweenCommands(t *testing.T) {
+	t.Parallel()
+	body, err := os.ReadFile(filepath.Join(repoRoot(t), "scripts", "smoke.sh"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(body)
+	// The point of the smoke run is the handovers, not the commands.
+	for _, want := range []string{
+		"makeready", "plan.json", "estimate", "packet", "allocate",
+		"-findings", "bill", "sweep", "maintain", "serve",
+	} {
+		if !strings.Contains(text, want) {
+			t.Errorf("the smoke run never touches %q", want)
+		}
+	}
+	// Every command that reads the plan has to read the same file.
+	if strings.Count(text, `"$work/plan.json"`) < 3 {
+		t.Error("the plan should be handed to more than one command, or the joins are untested")
+	}
+}
+
+func TestTheContributingNotesCoverTheThingsThatBreak(t *testing.T) {
+	t.Parallel()
+	body, err := os.ReadFile(filepath.Join(repoRoot(t), "CONTRIBUTING.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(body)
+	for _, want := range []string{
+		"make check", "tests/", "unattributed", "golden", "advisories",
+		"integer tenths of a foot", "unit.Decimal",
+	} {
+		if !strings.Contains(text, want) {
+			t.Errorf("the contributing notes do not cover %q", want)
+		}
+	}
+}
+
+func TestTheEditorConfigCoversWhatTheRepoHolds(t *testing.T) {
+	t.Parallel()
+	body, err := os.ReadFile(filepath.Join(repoRoot(t), ".editorconfig"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(body)
+	for _, want := range []string{"[*.go]", "indent_style = tab", "[Makefile]", "[*.golden]"} {
+		if !strings.Contains(text, want) {
+			t.Errorf(".editorconfig does not cover %q", want)
+		}
+	}
+	// The golden files are compared byte for byte, so an editor that trims
+	// their trailing whitespace breaks the comparison rather than the report.
+	golden := strings.Index(text, "[*.golden]")
+	if golden < 0 || !strings.Contains(text[golden:], "trim_trailing_whitespace = false") {
+		t.Error("the golden files must not have their whitespace trimmed")
+	}
+}
