@@ -25,13 +25,3 @@ func (l *listFlag) Set(value string) error {
 	l.values = append(l.values, trimmed)
 	return nil
 }
-
-// Values returns a copy of what was collected.
-func (l *listFlag) Values() []string {
-	out := make([]string, len(l.values))
-	copy(out, l.values)
-	return out
-}
-
-// Len returns how many times the option was given.
-func (l *listFlag) Len() int { return len(l.values) }

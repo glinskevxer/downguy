@@ -8,7 +8,7 @@ GO ?= go
 BIN := bin/downguy
 PKGS := ./...
 COVER_PROFILE := coverage.out
-COVER_FLOOR := 88
+COVER_FLOOR := 91
 FUZZ_SECONDS ?= 10
 
 RELEASE ?= dev
