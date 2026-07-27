@@ -2,14 +2,17 @@ package cliapp
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"io"
 
 	"github.com/glinskevxer/downguy/internal/clearance"
+	"github.com/glinskevxer/downguy/internal/loading"
 	"github.com/glinskevxer/downguy/internal/makeready"
 	"github.com/glinskevxer/downguy/internal/nesc"
 	"github.com/glinskevxer/downguy/internal/plant"
 	"github.com/glinskevxer/downguy/internal/report"
+	"github.com/glinskevxer/downguy/internal/store"
 	"github.com/glinskevxer/downguy/internal/survey"
 )
 
@@ -39,6 +42,8 @@ func newMakereadyFlags(out io.Writer) *Flags {
 	f.Set().String("application", "", "the application id to label the plan with")
 	f.Set().Bool("every-finding", false,
 		"plan work for every finding, including the ones a facility is already being moved for")
+	f.Set().Var(&assignmentFlag{}, "wire", "assign a conductor, as attachment=code")
+	f.Set().String("default-wire", "", "the conductor to assume for anything not assigned")
 	return f
 }
 
@@ -106,6 +111,20 @@ func runMakeready(env *Env) int {
 	planner := makeready.NewPlanner(application)
 	planner.Know(applied.Assembly)
 	plan := planner.Plan(findings)
+
+	// A pole that will not carry what is on it is a finding no clearance rule
+	// produces, and until now the plan simply did not mention it. The
+	// structural check runs only when the caller has said what the wires are,
+	// because without a conductor there is nothing to work a load out from.
+	structural, code := assessStructure(ctx, env, f, db, applied, engineering)
+	if code != CodeOK {
+		return code
+	}
+	if structural != nil && !structural.Passes {
+		plan.Items = makeready.Order(append(plan.Items, structural.Items...))
+		findings = append(findings, structural.Findings...)
+	}
+
 	if err := plan.Validate(); err != nil {
 		return env.Fail(CodeInternal, "%v", err)
 	}
@@ -116,6 +135,9 @@ func runMakeready(env *Env) int {
 		}
 	} else {
 		env.Print("%s on %s\n\n", application, id)
+		if structural != nil {
+			env.Print("%s\n\n", structural.Summary())
+		}
 		if err := report.Work(env.Stdout, plan); err != nil {
 			return env.Fail(CodeInternal, "%v", err)
 		}
@@ -138,6 +160,36 @@ func runMakeready(env *Env) int {
 		return CodeOK
 	}
 	return CodeFindings
+}
+
+// assessStructure runs the groundline check when the caller has told the
+// command what the wires are. It returns nil when they have not, rather than
+// guessing at a conductor: a load worked out from a wire nobody named is a
+// number that looks authoritative and is not.
+func assessStructure(ctx context.Context, env *Env, f *Flags, db *sql.DB,
+	applied *survey.Applied, engineering Engineering) (*makeready.Structural, int) {
+	assignment := assignmentsFor(f, applied.Assembly)
+	if len(assignment) == 0 {
+		return nil, CodeOK
+	}
+	loader := store.NewPlant(db)
+	line, err := loader.Line(ctx, "LN-"+string(applied.Assembly.Pole.ID), applied.Assembly.Pole.ID)
+	if err != nil {
+		if notFound(err) {
+			return nil, CodeOK
+		}
+		return nil, env.Fail(CodeInternal, "%v", err)
+	}
+	wires, err := loading.BuildWires(applied.Assembly, line, assignment, engineering.District)
+	if err != nil {
+		return nil, env.Fail(CodeUsage, "%v", err)
+	}
+	got, err := makeready.NewPlanner("structural").AssessStructure(
+		applied.Assembly.Pole, wires, wires, nil, engineering.District, engineering.Grade)
+	if err != nil {
+		return nil, env.Fail(CodeUsage, "%v", err)
+	}
+	return got, CodeOK
 }
 
 // withoutApplicant runs the same checks on the pole as it would be with the

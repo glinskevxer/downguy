@@ -246,3 +246,83 @@ func TestMakereadyFoldsTheFindingsAFacilityIsAlreadyMovingFor(t *testing.T) {
 		t.Errorf("the json run should still say what it folded, got %q", collapsed.Stderr)
 	}
 }
+
+func TestMakereadySaysNothingAboutTheStructureUntilTheWiresAreNamed(t *testing.T) {
+	t.Parallel()
+	path := crowdedDB(t)
+	quiet := cli("makeready", "-db", path, "NW-441829")
+	if quiet.Code != cliapp.CodeFindings {
+		t.Fatalf("code = %d", quiet.Code)
+	}
+	if strings.Contains(quiet.Stdout, "carries the new attachment") || strings.Contains(quiet.Stdout, "%") {
+		t.Errorf("with no conductor named there is nothing to work a load out from:\n%s", quiet.Stdout)
+	}
+}
+
+func TestMakereadyChecksTheStructureWhenItCan(t *testing.T) {
+	t.Parallel()
+	path := crowdedDB(t)
+	if got := cliIn("span_id,from_pole,to_pole,length_ft,cover\nSP-1,NW-441829,NW-441830,200,road\n",
+		"import", "-db", path, "spans"); got.Code != cliapp.CodeOK {
+		t.Fatal(got.Stderr)
+	}
+	got := cli("makeready", "-db", path, "-default-wire", "2 ACSR SPARROW", "NW-441829")
+	if got.Code != cliapp.CodeFindings {
+		t.Fatalf("code = %d, stderr = %q", got.Code, got.Stderr)
+	}
+	if !strings.Contains(got.Stdout, "NW-441829") || !strings.Contains(got.Stdout, "%") {
+		t.Errorf("the structural line should print:\n%s", got.Stdout)
+	}
+}
+
+func TestMakereadyPlansThePoleWhenItWillNotCarryTheLoad(t *testing.T) {
+	t.Parallel()
+	path := tempDB(t)
+	poles := "pole_id,length_ft,class,species,owner,condition\n" +
+		"NW-441829,30,7,SPF,SUMMIT VALLEY ELECTRIC,restorable\n" +
+		"NW-441830,30,7,SPF,SUMMIT VALLEY ELECTRIC,sound\n"
+	atts := "attachment_id,pole_id,owner,kind,height,authorized,voltage\n" +
+		"A1,NW-441829,SUMMIT VALLEY ELECTRIC,primary,23.5,y,7620\n" +
+		"A2,NW-441829,SUMMIT VALLEY ELECTRIC,neutral,20.0,y,\n" +
+		"A3,NW-441829,RIDGEPORT CABLEVISION,comm_cable,16.0,y,\n"
+	sheet := "survey_id,pole_id,taken,crew,condition,subject,height,method\n" +
+		"SV-1,NW-441829,2025-05-06,CREW 41,restorable,A1,23.5,laser\n" +
+		"SV-1,NW-441829,2025-05-06,CREW 41,restorable,A2,20.0,laser\n" +
+		"SV-1,NW-441829,2025-05-06,CREW 41,restorable,A3,16.0,laser\n"
+	spans := "span_id,from_pole,to_pole,length_ft,cover\nSP-1,NW-441829,NW-441830,400,road\n"
+	for _, step := range [][2]string{{poles, "poles"}, {atts, "attachments"}, {spans, "spans"}, {sheet, "surveys"}} {
+		if got := cliIn(step[0], "import", "-db", path, step[1]); got.Code != cliapp.CodeOK {
+			t.Fatalf("%s: %+v", step[1], got)
+		}
+	}
+	got := cli("makeready", "-db", path, "-json", "-grade", "B",
+		"-default-wire", "336 ACSR MERLIN", "NW-441829")
+	if got.Code != cliapp.CodeFindings {
+		t.Fatalf("code = %d, stderr = %q", got.Code, got.Stderr)
+	}
+	var plan report.PlanJSON
+	if err := json.Unmarshal([]byte(got.Stdout), &plan); err != nil {
+		t.Fatal(err)
+	}
+	replace := false
+	for _, item := range plan.Items {
+		if item.Action == "replace_pole" {
+			replace = true
+		}
+	}
+	if !replace {
+		t.Errorf("a class 7 pole under grade B should have its replacement planned, got %v", plan.Items)
+	}
+	if plan.Items[0].Action != "replace_pole" {
+		t.Errorf("the pole comes before anything on it, got %v", plan.Items)
+	}
+	cited := false
+	for _, f := range plan.Findings {
+		if f.Rule == "NESC-250B" {
+			cited = true
+		}
+	}
+	if !cited {
+		t.Errorf("the structural finding should be on the document, got %v", plan.Findings)
+	}
+}
