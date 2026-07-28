@@ -9,11 +9,19 @@ import (
 	"fmt"
 	"runtime"
 	"runtime/debug"
+	"sort"
 	"strings"
 )
 
-// Release is the tagged version, set with a linker flag.
+// Release is the tagged version, set with a linker flag. The default is
+// "dev" rather than a version number, because a binary built without the flags
+// should say so instead of claiming to be a release nobody cut.
 var Release = "dev"
+
+// Series is the line this program belongs to. It does not move with a build,
+// so it is a constant rather than a linker flag, and it is here so a support
+// call can distinguish a downguy 1.x binary from whatever follows.
+const Series = "1"
 
 // Commit is the source revision, set with a linker flag.
 var Commit = ""
@@ -33,7 +41,26 @@ type Info struct {
 	GoVersion string
 	Platform  string
 	Dirty     bool
+	// Modules is what this binary was linked against, at the versions it was
+	// linked against them. A support call about a sqlite driver behaving
+	// differently on one machine is answered by this line and by nothing else
+	// the binary can say.
+	Modules []Module
 }
+
+// Module is one dependency as it was built in.
+type Module struct {
+	Path    string
+	Version string
+}
+
+// String prints the module the way go list does.
+func (m Module) String() string { return m.Path + " " + m.Version }
+
+// Released reports whether this build carries a real release rather than the
+// default. A pipeline that ships an unstamped binary is a pipeline that cannot
+// tell you afterwards what it shipped.
+func (i Info) Released() bool { return i.Release != "" && i.Release != "dev" }
 
 // Current returns the build information, filling in from the module build
 // stamps whatever the linker flags did not set.
@@ -47,6 +74,13 @@ func Current() Info {
 	if !ok {
 		return info
 	}
+	for _, dep := range build.Deps {
+		if dep == nil || dep.Version == "" {
+			continue
+		}
+		info.Modules = append(info.Modules, Module{Path: dep.Path, Version: dep.Version})
+	}
+	sort.Slice(info.Modules, func(i, j int) bool { return info.Modules[i].Path < info.Modules[j].Path })
 	for _, setting := range build.Settings {
 		switch setting.Key {
 		case "vcs.revision":
@@ -62,6 +96,17 @@ func Current() Info {
 		}
 	}
 	return info
+}
+
+// Linked returns the version this binary was built against one module at, and
+// reports whether it was linked against it at all.
+func (i Info) Linked(path string) (string, bool) {
+	for _, m := range i.Modules {
+		if m.Path == path {
+			return m.Version, true
+		}
+	}
+	return "", false
 }
 
 // ShortCommit returns the first seven characters of the revision, which is
@@ -103,6 +148,9 @@ func (i Info) Long() string {
 	fmt.Fprintf(&b, "platform  %s\n", i.Platform)
 	if i.Dirty {
 		fmt.Fprintf(&b, "tree      modified at build time\n")
+	}
+	for _, m := range i.Modules {
+		fmt.Fprintf(&b, "linked    %s\n", m)
 	}
 	return b.String()
 }

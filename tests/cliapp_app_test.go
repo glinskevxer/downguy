@@ -192,3 +192,70 @@ func TestEnvHelpers(t *testing.T) {
 		t.Errorf("stderr = %q", errOut.String())
 	}
 }
+
+func TestAnUnstampedBinarySaysSo(t *testing.T) {
+	t.Parallel()
+	got := cli("version")
+	if got.Code != cliapp.CodeOK {
+		t.Fatalf("code = %d", got.Code)
+	}
+	info := version.Current()
+	if info.Released() {
+		// A stamped build says nothing extra, which is the other half of the
+		// behaviour and the one the pipeline produces.
+		if got.Stderr != "" {
+			t.Errorf("a stamped build should be quiet, got %q", got.Stderr)
+		}
+		return
+	}
+	if !strings.Contains(got.Stderr, "no release stamp") {
+		t.Errorf("an unstamped build should say so, got %q", got.Stderr)
+	}
+	if version.Series == "" {
+		t.Error("the series should say which line this is")
+	}
+}
+
+func TestReleasedReadsTheStamp(t *testing.T) {
+	t.Parallel()
+	cases := map[string]bool{"": false, "dev": false, "1.4.0": true, "ci": true}
+	for release, want := range cases {
+		info := version.Info{Release: release}
+		if got := info.Released(); got != want {
+			t.Errorf("Released(%q) = %v, want %v", release, got, want)
+		}
+	}
+}
+
+func TestTheVersionReportsWhatItWasLinkedAgainst(t *testing.T) {
+	t.Parallel()
+	info := version.Current()
+	if len(info.Modules) == 0 {
+		t.Skip("this binary carries no module stamps")
+	}
+	for _, m := range info.Modules {
+		if m.Path == "" || m.Version == "" {
+			t.Errorf("module = %+v", m)
+		}
+		if m.String() != m.Path+" "+m.Version {
+			t.Errorf("String = %q", m.String())
+		}
+	}
+	for i := 1; i < len(info.Modules); i++ {
+		if info.Modules[i].Path < info.Modules[i-1].Path {
+			t.Fatalf("modules are not sorted: %v", info.Modules)
+		}
+	}
+	// The sqlite driver is the dependency a support call is most likely about.
+	if got, ok := info.Linked("modernc.org/sqlite"); !ok {
+		t.Errorf("the sqlite driver is not on the list: %v", info.Modules)
+	} else if !strings.HasPrefix(got, "v") {
+		t.Errorf("sqlite version = %q", got)
+	}
+	if _, ok := info.Linked("example.com/nothing"); ok {
+		t.Error("Linked should miss")
+	}
+	if !strings.Contains(info.Long(), "linked") {
+		t.Errorf("Long should list what it was linked against:\n%s", info.Long())
+	}
+}

@@ -140,6 +140,34 @@ record holds a float.
 Every rule that can fire has a stable id and every finding carries the id it
 came from.
 
+## The service
+
+`downguy serve` runs a read only http service. It answers about plant, the
+published rates, the code rules, applications, and a live clearance check on
+one pole:
+
+```
+GET /healthz                 liveness
+GET /readyz                  readiness, including the schema version
+GET /poles?district=NW       the pole index
+GET /poles/NW-441829         one pole with everything on it
+GET /spans/SP-1              one span
+GET /attachers/RIDGEPORT%20CABLEVISION
+GET /applications?state=submitted
+GET /applications/APP-1042
+GET /rates/2025?attachers=5
+GET /rules?section=235
+GET /findings/NW-441829      the clearance rules run now, against the latest survey
+```
+
+There is no write side. Anything that changes a record goes through the command
+line, where it is a file somebody can look at and an exit code a pipeline can
+branch on.
+
+A pole nobody has surveyed answers `/findings/` with a 404 rather than an empty
+list. The difference matters: no findings and nobody has been out are not the
+same answer.
+
 ## Development
 
 ```

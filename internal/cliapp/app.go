@@ -161,7 +161,11 @@ func init() {
 		Summary: "print the build information",
 		Usage:   "usage: downguy version\n\nPrints the release, the revision it was built from and the toolchain.",
 		Run: func(env *Env) int {
-			fmt.Fprint(env.Stdout, version.Current().Long())
+			info := version.Current()
+			fmt.Fprint(env.Stdout, info.Long())
+			if !info.Released() {
+				fmt.Fprintln(env.Stderr, "this binary carries no release stamp, so it was not built by the pipeline")
+			}
 			return CodeOK
 		},
 	})
